@@ -1,6 +1,6 @@
 package main
 
-import "BinTree"
+import "usinggo/BinTree"
 import "fmt"
 
 // Walk walks the tree t sending all values
@@ -24,7 +24,7 @@ func Same(t1, t2 *BinTree.Tree) bool
 
 func main() {
 	ch := make(chan int)
-	go Walk(BinTree.New(1), ch)
+	go Walk(BinTree.New(10,1), ch)
 	for i := range ch {
 		fmt.Println(i)
 	}
