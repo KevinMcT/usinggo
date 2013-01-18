@@ -20,12 +20,29 @@ func _walk(t *BinTree.Tree, ch chan int) {
 
 // Same determines whether the trees
 // t1 and t2 contain the same values.
-func Same(t1, t2 *BinTree.Tree) bool
-
+func Same(t1, t2 *BinTree.Tree) bool {
+	if BinTree.Compare(t1, t2) {
+		return true
+	}
+	return false
+}
 func main() {
 	ch := make(chan int)
-	go Walk(BinTree.New(10,1), ch)
+	go Walk(BinTree.New(10, 1), ch)
 	for i := range ch {
 		fmt.Println(i)
+	}
+	fmt.Println("--------------------------------------------")
+	fmt.Println("Comparing two trees. First should match, second should not")
+	fmt.Println("--------------------------------------------")
+	if Same(BinTree.New(10, 1), BinTree.New(10, 1)) {
+		fmt.Println("Is Same")
+	} else {
+		fmt.Println("Is not Same")
+	}
+	if Same(BinTree.New(10, 1), BinTree.New(10, 2)) {
+		fmt.Println("Is Same")
+	} else {
+		fmt.Println("Is not Same")
 	}
 }
