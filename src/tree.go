@@ -45,4 +45,27 @@ func main() {
 	} else {
 		fmt.Println("Is not Same")
 	}
+	fmt.Println("--------------------------------------------")
+	fmt.Println("Running loop 'n' times")
+	fmt.Println("--------------------------------------------")
+	loop(5)
+	fmt.Println("--------------------------------------------")
+	fmt.Println("Value of ok")
+	fmt.Println("--------------------------------------------")
+	mystery()
 }
+
+func loop(n int) {
+	for i := 0; i < n; i++ {
+		fmt.Println("Iteration ", i)
+	}
+}
+
+func mystery() {
+	someMap := make(map[int]string)
+	someMap[0] = "String"
+	_, ok := someMap[0]
+	fmt.Println(ok)
+}
+}
+
