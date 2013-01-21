@@ -15,7 +15,7 @@
 // sending their contents through a channel
 // to a third goroutine that compares them.
 
-package BinTree
+package binTree
 
 import (
 	"fmt"
