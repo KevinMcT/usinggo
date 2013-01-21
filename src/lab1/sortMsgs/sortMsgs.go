@@ -4,7 +4,7 @@ package main
 import (
 	"encoding/gob"
 	"fmt"
-	"messages"
+	"lab1/messages"
 	"os"
 	"time"
 )
@@ -16,6 +16,7 @@ var (
 )
 
 func main() {
+
 	go handleMsgs(msgChan)
 	go handleErrors(errChan)
 	go sort(inChan, msgChan, errChan)
@@ -27,11 +28,15 @@ func demarshal(filePath string, inChan chan interface{}) {
 	//Retrieve the slice of messages from the file (type []interface{})
 	//send each element of the slice on inChan
 	//when all was send, close the channel.
-	file, _ := os.Open(filePath)
-	inputMessages := make([]interface{}, 10)
-	decoder := gob.NewDecoder(file)
-	for {
-		inputMessages = append(inputMessages, decoder.Decode(i))
+	input, _ := os.Open(filePath)
+	dec := gob.NewDecoder(input)
+	t2 := make([]interface{}, 5)
+	err := dec.Decode(&t2)
+	if err != nil {
+		fmt.Println(err)
+	}
+	for _, v := range t2 {
+		inChan <- v
 	}
 }
 
@@ -40,6 +45,15 @@ func sort(inChan chan interface{}, msgChan chan messages.StrMsg, errChan chan me
 	//forward messages on msgChan or errChan according to its type. 
 	//  (use switch x.(type) { case:...})
 	//when all was send, close the channels
+	for {
+		msg, _ := <-inChan
+		switch msg.(type) {
+		case messages.StrMsg:
+			msgChan <- msg.(messages.StrMsg)
+		case messages.ErrMsg:
+			errChan <- msg.(messages.ErrMsg)
+		}
+	}
 }
 
 func handleMsgs(inchan chan messages.StrMsg) {
@@ -54,6 +68,7 @@ func handleMsgs(inchan chan messages.StrMsg) {
 			}
 			break
 		}
+		fmt.Println("Senderen = " + senders)
 	}
 }
 
@@ -69,5 +84,6 @@ func handleErrors(inchan chan messages.ErrMsg) {
 			}
 			break
 		}
+		fmt.Println("Feilmld = " + errors)
 	}
 }

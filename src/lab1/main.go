@@ -67,4 +67,3 @@ func mystery() {
 	_, ok := someMap[0]
 	fmt.Println(ok)
 }
-
