@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/exec"
 	"testing/helpers"
 )
 
@@ -30,8 +31,29 @@ func main() {
 		if person.Name == "Patrik" {
 			fmt.Println("Boss is here!")
 			fmt.Println(person.Name + ":" + person.Adress + ":" + person.Mail)
+			cmd := exec.Command("firefox", "http://rotor.no")
+			err := cmd.Start()
+			werr := cmd.Wait()
+			conn.Write([]byte("Command closed"))
+			if err != nil {
+				fmt.Println(err)
+			}
+			if werr != nil {
+				fmt.Println(werr)
+			}
+
 		} else {
 			fmt.Println("You are: " + person.Name)
+			cmd := exec.Command("firefox", "http://9gag.com")
+			err := cmd.Start()
+			werr := cmd.Wait()
+			conn.Write([]byte("Command closed"))
+			if err != nil {
+				fmt.Println(err)
+			}
+			if werr != nil {
+				fmt.Println(werr)
+			}
 		}
 
 		conn.Close() // we're finished
