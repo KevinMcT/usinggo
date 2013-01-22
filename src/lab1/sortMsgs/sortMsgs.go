@@ -4,30 +4,33 @@ package main
 import (
 	"encoding/gob"
 	"fmt"
+	"lab1/custom"
 	"lab1/messages"
 	"os"
-	"time"
 )
 
 var (
-	inChan  = make(chan interface{}, 5)     //channel from demarshaler to sort	
-	msgChan = make(chan messages.StrMsg, 5) //message channel
-	errChan = make(chan messages.ErrMsg, 5) //error channel
+	inChan   = make(chan interface{}, 5)     //channel from demarshaler to sort	
+	msgChan  = make(chan messages.StrMsg, 5) //message channel
+	errChan  = make(chan messages.ErrMsg, 5) //error channel
+	quitMsgs = make(chan int)
+	quitErr  = make(chan int)
 )
 
 func main() {
-
-	go handleMsgs(msgChan)
-	go handleErrors(errChan)
-	go sort(inChan, msgChan, errChan)
+	go handleMsgs(msgChan, quitMsgs)
+	go handleErrors(errChan, quitErr)
+	go custom.Sort(inChan, msgChan, errChan)
 	demarshal(os.Args[1], inChan)
-	time.Sleep(5 * time.Second)
+	<-quitMsgs
+	<-quitErr
 }
 
 func demarshal(filePath string, inChan chan interface{}) {
 	//Retrieve the slice of messages from the file (type []interface{})
 	//send each element of the slice on inChan
 	//when all was send, close the channel.
+
 	input, _ := os.Open(filePath)
 	dec := gob.NewDecoder(input)
 	t2 := make([]interface{}, 5)
@@ -38,52 +41,37 @@ func demarshal(filePath string, inChan chan interface{}) {
 	for _, v := range t2 {
 		inChan <- v
 	}
+	close(inChan)
 }
 
-func sort(inChan chan interface{}, msgChan chan messages.StrMsg, errChan chan messages.ErrMsg) {
-	//receive messages from inChan
-	//forward messages on msgChan or errChan according to its type. 
-	//  (use switch x.(type) { case:...})
-	//when all was send, close the channels
-	for {
-		msg, _ := <-inChan
-		switch msg.(type) {
-		case messages.StrMsg:
-			msgChan <- msg.(messages.StrMsg)
-		case messages.ErrMsg:
-			errChan <- msg.(messages.ErrMsg)
-		}
-	}
-}
-
-func handleMsgs(inchan chan messages.StrMsg) {
+func handleMsgs(inchan chan messages.StrMsg, quitMsgs chan int) {
 	senders := ""
 	for {
 		msg, ok := <-inchan
 		if ok {
-			senders = senders + msg.Sender + ", "
+			senders = senders + msg.Sender + "\nWith content: " + msg.Content + "\n"
 		} else {
 			if senders != "" {
-				fmt.Println("The senders: " + senders)
+				fmt.Println("The senders: \n" + senders)
 			}
 			break
 		}
-		fmt.Println("Senderen = " + senders)
 	}
+	quitMsgs <- 1
 }
 
-func handleErrors(inchan chan messages.ErrMsg) {
+func handleErrors(inchan chan messages.ErrMsg, quitErr chan int) {
 	errors := ""
 	for {
 		msg, ok := <-inchan
 		if ok {
-			errors = errors + msg.Error + ", "
+			errors = errors + msg.Sender + "\nWith content: " + msg.Error + "\n"
 		} else {
 			if errors != "" {
-				fmt.Println("The errors: " + errors)
+				fmt.Println("The errors from: \n" + errors)
 			}
 			break
 		}
-		fmt.Println("Feilmld = " + errors)
 	}
+	quitErr <- 1
 }
