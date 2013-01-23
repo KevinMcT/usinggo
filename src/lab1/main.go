@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"lab1/binTree"
 	"lab1/custom"
+	"os"
 )
 
 func main() {
@@ -15,7 +16,7 @@ func main() {
 		fmt.Println("| 3 - Loop n times. Enter number to loop                            |")
 		fmt.Println("| 4 - Value of the mystery code in lab                              |")
 		fmt.Println("| 5 - Square root of float64                                        |")
-		fmt.Println("| Ctrl + c to quit                                                  |")
+		fmt.Println("| 0 - Quit                                                          |")
 		fmt.Println("---------------------------------------------------------------------")
 		var in int
 		fmt.Scanf("%d", &in)
@@ -72,6 +73,8 @@ func main() {
 			} else {
 				fmt.Println(res)
 			}
+		case 0:
+			os.Exit(0)
 		}
 	}
 }

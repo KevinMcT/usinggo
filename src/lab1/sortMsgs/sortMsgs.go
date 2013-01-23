@@ -18,6 +18,10 @@ var (
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("Useage: go run sortMsgs.go 'file' eg. go run sortMsgs.go ../gobmarshaler/messages2")
+		os.Exit(1)
+	}
 	go handleMsgs(msgChan, quitMsgs)
 	go handleErrors(errChan, quitErr)
 	go custom.Sort(inChan, msgChan, errChan)
