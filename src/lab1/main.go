@@ -1,7 +1,9 @@
 package main
 
 import "lab1/binTree"
+import "lab1/custom"
 import "fmt"
+import "math"
 
 // Walk walks the tree t sending all values
 // from the tree to the channel ch.
@@ -27,6 +29,9 @@ func Same(t1, t2 *binTree.Tree) bool {
 	return false
 }
 func main() {
+	fmt.Println("--------------------------------------------")
+	fmt.Println("Sorting and print the tree")
+	fmt.Println("--------------------------------------------")
 	ch := make(chan int)
 	go Walk(binTree.New(10, 1), ch)
 	for i := range ch {
@@ -53,6 +58,28 @@ func main() {
 	fmt.Println("Value of ok")
 	fmt.Println("--------------------------------------------")
 	mystery()
+	fmt.Println("--------------------------------------------")
+	fmt.Println("Custom sqrt function with negative numbers")
+	fmt.Println("--------------------------------------------")
+	res, err := custom.Sqrt(-2)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(res)
+	}
+	fmt.Println("--------------------------------------------")
+	fmt.Println("Custom sqrt function")
+	fmt.Println("--------------------------------------------")
+	res2, err2 := custom.Sqrt(2)
+	if err2 != nil {
+		fmt.Println(err2)
+	} else {
+		fmt.Println(res2)
+	}
+	fmt.Println("--------------------------------------------")
+	fmt.Println("Math.Sqrt function")
+	fmt.Println("--------------------------------------------")
+	fmt.Println(math.Sqrt(2))
 }
 
 func loop(n int) {
