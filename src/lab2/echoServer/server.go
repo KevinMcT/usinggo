@@ -1,13 +1,13 @@
 // SimpleEchoServer
-package main
+package echoServer
 
 import (
+	"fmt"
 	"net"
 	"os"
-	"fmt"
 )
 
-func main() {
+func EchoServer() {
 	udpAddr, err := net.ResolveUDPAddr("up4", ":1201")
 	checkError(err)
 	conn, err := net.ListenUDP("udp", udpAddr)
@@ -42,4 +42,3 @@ func checkError(err error) {
 		os.Exit(1)
 	}
 }
-

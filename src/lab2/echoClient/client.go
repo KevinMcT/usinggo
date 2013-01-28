@@ -1,18 +1,14 @@
 // UDPEchoClient
-package main
+package echoClient
 
 import (
+	"fmt"
 	"net"
 	"os"
-	"fmt"
 )
 
-func main() {
-	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "Usage: echocl host:port\n")
-		os.Exit(1)
-	}
-	service := os.Args[1]
+func EchoClient(host string) {
+	service := host + ":1201"
 	udpAddr, err := net.ResolveUDPAddr("udp", service)
 	checkError(err)
 	conn, err := net.DialUDP("udp", nil, udpAddr)
@@ -33,4 +29,3 @@ func checkError(err error) {
 		os.Exit(1)
 	}
 }
-

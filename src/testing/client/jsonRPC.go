@@ -3,7 +3,7 @@ package client
 import (
 	"fmt"
 	"log"
-	"net/rpc/jsonrpc"
+	"net/rpc"
 )
 
 type Args struct {

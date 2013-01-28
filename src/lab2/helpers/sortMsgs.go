@@ -1,7 +1,6 @@
 package helpers
 
 import "lab2/messages"
-import "fmt"
 
 func Sort(inChan chan interface{}, msgChan chan messages.StrMsg, errChan chan messages.ErrMsg) {
 	for {
