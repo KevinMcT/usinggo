@@ -7,6 +7,7 @@ import (
 	"lab2/messages"
 	"net"
 	"os"
+	"time"
 )
 
 var (
@@ -21,7 +22,12 @@ func MsgsServer(port string) {
 	go handleMsgs(msgChan, quitMsgs)
 	go handleErrors(errChan, quitErr)
 	go helpers.Sort(inChan, msgChan, errChan)
+	demarshal(port, inChan)
+	<-quitMsgs
+	<-quitErr
+}
 
+func demarshal(port string, inChan chan interface{}) {
 	service := "0.0.0.0:" + port
 	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	CheckError(err)
@@ -32,24 +38,22 @@ func MsgsServer(port string) {
 	conn, err := listener.Accept()
 
 	for {
+		conn.SetDeadline(time.Now().Add(10 * time.Second))
 		if err != nil {
-			continue
+			break
 		}
-
 		decoder := gob.NewDecoder(conn)
-		demarshal(decoder, inChan)
+		var msg interface{}
+		err = decoder.Decode(&msg)
+		if err != nil {
+			fmt.Println(err)
+		}
+		if msg != nil {
+			conn.SetDeadline(time.Now().Add(10 * time.Second))
+		}
+		inChan <- msg
 	}
-	conn.Close()
-}
-
-func demarshal(dec *gob.Decoder, inChan chan interface{}) {
-	var msg interface{}
-	err := dec.Decode(&msg)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println("is this error?")
-	}
-	inChan <- msg
+	close(inChan)
 }
 
 func handleMsgs(inchan chan messages.StrMsg, quitMsgs chan int) {
@@ -57,10 +61,11 @@ func handleMsgs(inchan chan messages.StrMsg, quitMsgs chan int) {
 	for {
 		msg, ok := <-inchan
 		if ok {
-			senders = senders + msg.Sender + "\nWith content: " + msg.Content + "\n"
+			senders = senders + msg.Sender + ", "
+			fmt.Println("Message recived from: ", msg.Sender, ":", msg.Content)
 		} else {
 			if senders != "" {
-				fmt.Println("The senders: \n" + senders)
+				fmt.Println("The senders: " + senders)
 			}
 			break
 		}
@@ -73,10 +78,11 @@ func handleErrors(inchan chan messages.ErrMsg, quitErr chan int) {
 	for {
 		msg, ok := <-inchan
 		if ok {
-			errors = errors + msg.Sender + "\nWith content: " + msg.Error + "\n"
+			errors = errors + msg.Error + ", "
+			fmt.Println("Message recived from: ", msg.Sender, ":", msg.Error)
 		} else {
 			if errors != "" {
-				fmt.Println("The errors from: \n" + errors)
+				fmt.Println("The errors from: " + errors)
 			}
 			break
 		}

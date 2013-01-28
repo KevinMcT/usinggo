@@ -27,7 +27,8 @@ func MsgsClient(host string) {
 	reader = bufio.NewReader(os.Stdin)
 	for msg, err := getinput(); err == nil; msg, err = getinput() {
 		fmt.Println("Sending")
-		encoder.Encode(msg)
+		encoder = gob.NewEncoder(conn)
+		encoder.Encode(&msg)
 	}
 	return
 }
