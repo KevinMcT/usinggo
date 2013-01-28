@@ -6,7 +6,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"lab2/helpers"
+	"lab2/messages"
 	"net"
 	"os"
 )

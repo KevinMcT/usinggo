@@ -1,8 +1,6 @@
 package helpers
 
-import (
-	"lab2/helpers"
-)
+import "lab2/messages"
 
 func Sort(inChan chan interface{}, msgChan chan messages.StrMsg, errChan chan messages.ErrMsg) {
 	//receive messages from inChan
