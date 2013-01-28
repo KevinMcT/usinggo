@@ -1,6 +1,7 @@
 package helpers
 
 import "lab2/messages"
+import "fmt"
 
 func Sort(inChan chan interface{}, msgChan chan messages.StrMsg, errChan chan messages.ErrMsg) {
 	for {
@@ -11,6 +12,8 @@ func Sort(inChan chan interface{}, msgChan chan messages.StrMsg, errChan chan me
 				msgChan <- m.(messages.StrMsg)
 			case messages.ErrMsg:
 				errChan <- m.(messages.ErrMsg)
+			case messages.NT:
+				//DO NOTHING! DO NOT TOUCH!! DISCARDED PIIIINGZZZZ!
 			}
 		} else {
 			break

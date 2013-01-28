@@ -8,6 +8,7 @@ import (
 func init() {
 	gob.Register(StrMsg{})
 	gob.Register(ErrMsg{})
+	gob.Register(NT{})
 }
 
 /* Structs for the messages: */
@@ -20,4 +21,8 @@ type StrMsg struct {
 type ErrMsg struct {
 	Sender string
 	Error  string
+}
+
+type NT struct {
+	Sender string
 }

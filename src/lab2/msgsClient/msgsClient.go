@@ -9,10 +9,12 @@ import (
 	"lab2/messages"
 	"net"
 	"os"
+	"time"
 )
 
 var (
 	msg    interface{}
+	nt     interface{}
 	reader *bufio.Reader
 )
 
@@ -25,12 +27,22 @@ func MsgsClient(host string) {
 
 	encoder := gob.NewEncoder(conn)
 	reader = bufio.NewReader(os.Stdin)
+	go stopTimeout(conn)
 	for msg, err := getinput(); err == nil; msg, err = getinput() {
 		fmt.Println("Sending")
 		encoder = gob.NewEncoder(conn)
 		encoder.Encode(&msg)
 	}
 	return
+}
+
+func stopTimeout(conn net.Conn) {
+	for {
+		nt = messages.NT{"empty"}
+		encoder := gob.NewEncoder(conn)
+		encoder.Encode(&nt)
+		time.Sleep(20 * time.Second)
+	}
 }
 
 func getinput() (msg interface{}, err error) {

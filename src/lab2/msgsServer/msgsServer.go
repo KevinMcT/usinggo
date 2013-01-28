@@ -38,7 +38,7 @@ func demarshal(port string, inChan chan interface{}) {
 	conn, err := listener.Accept()
 
 	for {
-		conn.SetDeadline(time.Now().Add(10 * time.Second))
+		conn.SetDeadline(time.Now().Add(30 * time.Second))
 		if err != nil {
 			break
 		}
@@ -49,7 +49,7 @@ func demarshal(port string, inChan chan interface{}) {
 			fmt.Println(err)
 		}
 		if msg != nil {
-			conn.SetDeadline(time.Now().Add(10 * time.Second))
+			conn.SetDeadline(time.Now().Add(30 * time.Second))
 		}
 		inChan <- msg
 	}
