@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-func EchoServer() {
-	udpAddr, err := net.ResolveUDPAddr("up4", ":1201")
+func EchoServer(port string) {
+	udpAddr, err := net.ResolveUDPAddr("up4", ":"+port)
 	checkError(err)
 	conn, err := net.ListenUDP("udp", udpAddr)
 	checkError(err)

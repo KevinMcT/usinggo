@@ -8,7 +8,7 @@ import (
 )
 
 func EchoClient(host string) {
-	service := host + ":1201"
+	service := host
 	udpAddr, err := net.ResolveUDPAddr("udp", service)
 	checkError(err)
 	conn, err := net.DialUDP("udp", nil, udpAddr)

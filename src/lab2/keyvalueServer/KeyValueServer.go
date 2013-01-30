@@ -39,11 +39,11 @@ func (kv KeyValue) LookUp(input *string, reply *Found) error {
 	return nil
 }
 
-func KeyServer() {
+func KeyServer(port string) {
 	kv := make(KeyValue)
 	rpc.Register(kv)
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", ":12110")
+	tcpAddr, err := net.ResolveTCPAddr("tcp", ":"+port)
 	checkError(err)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	checkError(err)
