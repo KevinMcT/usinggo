@@ -45,6 +45,11 @@ func LookUp(client *rpc.Client, key string) string {
 	if err != nil {
 		log.Fatal("Insert Error:", err)
 	}
-	res := fmt.Sprintf("Response: %s is %v\n", lookup.Value, lookup.Ok)
+	var res string
+	if lookup.Ok == true {
+		res = fmt.Sprintf("Response: LookUp fround value %s at key: %s", lookup.Value, key)
+	} else {
+		res = fmt.Sprintf("Response: LookUp did not find value %s at key: %s", lookup.Value, key)
+	}
 	return res
 }
