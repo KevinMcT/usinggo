@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	//"lab3/Communication"
 	"lab3/Discov"
 	"lab3/messages"
 	"net"
@@ -18,9 +17,7 @@ var (
 )
 
 func main() {
-	//ok, ip := Discov.Listener()
 	startTime := time.Now()
-	//ticker := time.NewTicker(7 * time.Second)
 	name, _ := os.Hostname()
 	addr, _ := net.LookupHost(name)
 	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
@@ -49,22 +46,3 @@ func AppendIfMissing(slice []messages.Node, i messages.Node) []messages.Node {
 	}
 	return append(slice, i)
 }
-
-/*	var ok bool
-	ok = true
-	for {
-		fmt.Println("REG IP")
-		node := <-ips
-		if ok {
-			ipArray = append(ipArray, node.IP)
-			ok = false
-		}
-		fmt.Println(ipArray)
-		for _, v := range ipArray {
-			if node.IP != v {
-				ipArray = append(ipArray, node.IP)
-				fmt.Println(ipArray)
-			}
-		}
-		work <- 1
-	}*/

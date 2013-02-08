@@ -1,4 +1,4 @@
-package Communication
+package FD
 
 import (
 	"encoding/gob"

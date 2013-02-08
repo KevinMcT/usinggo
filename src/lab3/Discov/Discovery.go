@@ -40,16 +40,3 @@ func SendBroadcast(mcaddr *net.UDPAddr, conn *net.UDPConn, intime time.Time) {
 		<-timer.C
 	}
 }
-
-/*			if ok {
-				ips = append(ips, addr)
-				inChan <- node
-				ok = false
-			}
-			for _, v := range ips {
-				test := addr.IP.Equal(v.IP)
-				if !test {
-					ips = append(ips, addr)
-					inChan <- node
-				}
-			}*/
