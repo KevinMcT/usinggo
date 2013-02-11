@@ -12,11 +12,12 @@ import (
 )
 
 var (
-	end     = make(chan int)
-	ips     = make(chan messages.Node, 100)
-	work    = make(chan int, 10)
-	ipArray = make([]messages.Node, 0)
-	Leader  *net.UDPAddr
+	end      = make(chan int)
+	ips      = make(chan messages.Node, 100)
+	leadchan = make(chan *net.UDPAddr, 0)
+	work     = make(chan int, 10)
+	ipArray  = make([]messages.Node, 0)
+	Leader   *net.UDPAddr
 )
 
 func main() {
@@ -27,19 +28,25 @@ func main() {
 	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
 	node := messages.Node{IP: UDPAddr, Time: test}
 	ipArray = append(ipArray, node)
-	go Discov.ListenForBroadcast(ips, test)
+	go Discov.ListenForBroadcast(ips, test, leadchan)
 	go RegIP()
 	for {
-		<-work
-		if Leader == nil {
-			ip := LeaderElect.Elect(test, ipArray)
-			if ip == nil {
-				Leader = UDPAddr
+		if len(ipArray) != 0 {
+			if Leader == nil {
+				ip := LeaderElect.Elect(test, ipArray)
+				if ip == nil {
+					Leader = UDPAddr
+				} else {
+					Leader = ip
+					leadchan <- Leader
+				}
 			} else {
-				Leader = ip
+				leadchan <- Leader
 			}
+			fmt.Println(ipArray)
+			<-work
+
 		}
-		fmt.Println(ipArray)
 	}
 }
 

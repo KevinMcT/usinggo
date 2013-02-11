@@ -14,7 +14,6 @@ var (
 func Elect(mytime string, _nodes []messages.Node) *net.UDPAddr {
 	mysTime, _ := strconv.Atoi(mytime)
 	hissTime, _ := strconv.Atoi(_nodes[1].Time)
-
 	if mysTime < hissTime {
 		fmt.Print("Me older!")
 		fmt.Println(mysTime)
