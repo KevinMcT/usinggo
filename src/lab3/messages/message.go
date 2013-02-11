@@ -20,5 +20,6 @@ type Ping struct {
 
 type Node struct {
 	IP   *net.UDPAddr
-	Time time.Time
+	Time string
+	Role bool
 }
