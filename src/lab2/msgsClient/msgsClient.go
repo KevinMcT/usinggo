@@ -86,7 +86,7 @@ func readfrominput(instruction string) (line string) {
 	return line
 }
 
-func checkError(err error) {
+func checkError(hosterr error) {
 	if err != nil {
 		fmt.Println("Fatal error", err.Error())
 		os.Exit(1)

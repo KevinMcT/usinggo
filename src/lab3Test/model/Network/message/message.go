@@ -8,6 +8,8 @@ var ()
 
 func init() {
 	gob.Register(Node{})
+	gob.Register(HARTBEATREQUEST{})
+	gob.Register(HARTBEATRESPONSE{})
 }
 
 type Node struct {
@@ -16,4 +18,12 @@ type Node struct {
 	LEAD      bool
 	ALIVE     bool
 	SUSPECTED bool
+}
+
+type HARTBEATREQUEST struct {
+	IP string
+}
+
+type HARTBEATRESPONSE struct {
+	IP string
 }
