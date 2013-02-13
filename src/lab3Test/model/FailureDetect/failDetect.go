@@ -26,17 +26,30 @@ func Fd(nodes chan message.Node, selfnode message.Node) {
 	for {
 		if len(nodelist) > 3 {
 			if selfnode.LEAD != true {
-				node, err := recieveHartbeat()
-				fmt.Println(node)
-				fmt.Println("Moving on")
+				lnode, err := recieveHartbeat()
+				fmt.Println("Recieved Ping from: ", lnode.IP)
+				sendHartbeat(lnode.IP, selfnode)
+				fmt.Println("Sent response to: ", lnode.IP)
 				if err != nil {
-					fmt.Println("WTF!")
 				}
 			} else {
-				for _, v := range nodelist {
+				for i, v := range nodelist {
 					if v.IP != selfnode.IP {
 						fmt.Println("Sending to IP: ", v.IP)
-						sendHartbeat(v.IP, selfnode)
+						str := sendHartbeat(v.IP, selfnode)
+						slv, err := recieveHartbeat()
+						if err != nil {
+							fmt.Println(err)
+						}
+						fmt.Println("Response from: ", slv.IP)
+						if str == "suspect" {
+							nodelist[i].SUSPECTED = true
+							fmt.Println("Suspecting IP: ", v.IP)
+						}
+						if v.SUSPECTED == true && str == "ok" {
+							nodelist[i].SUSPECTED = false
+							fmt.Println("IP is back!: ", v.IP)
+						}
 						<-timer2.C
 					}
 				}
@@ -46,20 +59,18 @@ func Fd(nodes chan message.Node, selfnode message.Node) {
 	}
 }
 
-func sendHartbeat(ip string, node message.Node) {
-	var err2 error
-	fmt.Println("Hartbeat")
+func sendHartbeat(ip string, node message.Node) string {
 	err := tcp.Send(ip, node)
 	if err != nil {
-		err2 = tcp.Send(ip, node)
-		for err2 != nil {
-			err2 = tcp.Send(ip, node)
-		}
+		return "suspect"
 	}
+	if node.SUSPECTED == true && err == nil {
+		return "ok"
+	}
+	return "ok"
 }
 
 func recieveHartbeat() (message.Node, error) {
-	fmt.Println("Recieve")
 	node, err := tcp.Recieve()
 	return node, err
 }

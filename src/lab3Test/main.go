@@ -13,6 +13,8 @@ var (
 	nodeChan = make(chan message.Node, 10)
 	newNodes = make(chan message.Node, 10)
 	nodeList = make([]message.Node, 0)
+	stopNumL = make(chan int, 10)
+	stopNumS = make(chan int, 10)
 	work     = make(chan int, 0)
 	leader   message.Node
 	tick     = time.NewTimer(5 * time.Second)

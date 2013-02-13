@@ -22,7 +22,6 @@ func Send(ip string, node message.Node) error {
 	msg = node
 	service := ip + ":2000"
 	conn, err := net.Dial("tcp", service)
-	fmt.Println(err)
 	if err != nil {
 		return err
 	} else {
@@ -39,6 +38,7 @@ func Recieve() (message.Node, error) {
 	tcpAddr, _ := net.ResolveTCPAddr("tcp", service)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	conn, err2 := listener.Accept()
+	conn.SetDeadline(time.Now().Add(1 * time.Second))
 	var msg interface{}
 	if err != nil {
 		fmt.Println("Recieve. 43: ", err)
