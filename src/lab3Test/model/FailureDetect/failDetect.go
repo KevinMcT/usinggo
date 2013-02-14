@@ -21,7 +21,7 @@ var (
 func init() {
 }
 
-func Fd(nodes chan message.Node, selfnode message.Node, leadElect chan int) {
+func Fd(nodes chan message.Node, selfnode message.Node, leadElect chan []message.Node) {
 	go fillNodelist(nodes, selfnode)
 	var suspectedNode message.Node
 	for {
@@ -36,8 +36,13 @@ func Fd(nodes chan message.Node, selfnode message.Node, leadElect chan int) {
 				lnode, err := recieveHartbeat()
 				if lnode.SUSPECTED == true && lnode.IP == "" && err != nil {
 					fmt.Println("Suspecting leader...")
-					//leadElect <- 1
-					//break
+					for i, v := range nodelist {
+						if v.IP == myLead.IP {
+							nodelist[i].SUSPECTED = true
+						}
+					}
+					leadElect <- nodelist
+					break
 				}
 				if err == nil {
 					fmt.Println("Recieved Ping from: ", myLead.IP)

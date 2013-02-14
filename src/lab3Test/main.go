@@ -2,6 +2,7 @@ package main
 
 import (
 	"lab3Test/model/FailureDetect"
+	"lab3Test/model/LeaderElect"
 	"lab3Test/model/Network/message"
 	"lab3Test/model/Network/udp"
 	"net"
@@ -13,7 +14,7 @@ var (
 	nodeChan  = make(chan message.Node, 10)
 	newNodes  = make(chan message.Node, 10)
 	nodeList  = make([]message.Node, 0)
-	leadElect = make(chan int)
+	leadElect = make(chan []message.Node)
 	stopNumL  = make(chan int, 10)
 	stopNumS  = make(chan int, 10)
 	work      = make(chan int, 0)
@@ -37,6 +38,7 @@ func main() {
 		selfnode = message.Node{IP: UDPAddr.IP.String(), TIME: startTime, ALIVE: true, LEAD: false}
 	}
 	go FailureDetect.Fd(newNodes, selfnode, leadElect)
+	go LeaderElect.Elect(leadElect)
 	for {
 		<-work
 	}
