@@ -10,32 +10,33 @@ import (
 )
 
 var (
-	nodeChan = make(chan message.Node, 10)
-	newNodes = make(chan message.Node, 10)
-	nodeList = make([]message.Node, 0)
-	stopNumL = make(chan int, 10)
-	stopNumS = make(chan int, 10)
-	work     = make(chan int, 0)
-	leader   message.Node
-	tick     = time.NewTimer(5 * time.Second)
-	selfnode message.Node
+	nodeChan  = make(chan message.Node, 10)
+	newNodes  = make(chan message.Node, 10)
+	nodeList  = make([]message.Node, 0)
+	leadElect = make(chan int)
+	stopNumL  = make(chan int, 10)
+	stopNumS  = make(chan int, 10)
+	work      = make(chan int, 0)
+	leader    message.Node
+	tick      = time.NewTimer(5 * time.Second)
+	selfnode  message.Node
 )
 
 func main() {
-	//startTime := time.Now().Unix()
+	startTime := time.Now().UnixNano()
 	name, _ := os.Hostname()
 	addr, _ := net.LookupHost(name)
 	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
-	go udp.Listen(nodeChan)
+	go udp.Listen(nodeChan, startTime)
 	go RegIP()
 	<-tick.C
 	if leader.IP != "" && leader.IP == UDPAddr.IP.String() {
-		selfnode = message.Node{IP: UDPAddr.IP.String(), ALIVE: true, LEAD: true}
+		selfnode = message.Node{IP: UDPAddr.IP.String(), TIME: startTime, ALIVE: true, LEAD: true}
 	}
 	if leader.IP != UDPAddr.IP.String() {
-		selfnode = message.Node{IP: UDPAddr.IP.String(), ALIVE: true, LEAD: false}
+		selfnode = message.Node{IP: UDPAddr.IP.String(), TIME: startTime, ALIVE: true, LEAD: false}
 	}
-	go FailureDetect.Fd(newNodes, selfnode)
+	go FailureDetect.Fd(newNodes, selfnode, leadElect)
 	for {
 		<-work
 	}

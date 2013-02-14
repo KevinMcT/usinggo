@@ -37,14 +37,17 @@ func Recieve() (message.Node, error) {
 	service := "0.0.0.0:2000"
 	tcpAddr, _ := net.ResolveTCPAddr("tcp", service)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
+	listener.SetDeadline(time.Now().Add(7 * time.Second))
 	conn, err2 := listener.Accept()
-	conn.SetDeadline(time.Now().Add(1 * time.Second))
 	var msg interface{}
 	if err != nil {
-		fmt.Println("Recieve. 43: ", err)
+		node = message.Node{SUSPECTED: true}
+		return node, err2
 	}
 	if err2 != nil {
-		fmt.Println("Recieve. 46: ", err2)
+		node = message.Node{SUSPECTED: true}
+		listener.Close()
+		return node, err2
 	}
 	decoder := gob.NewDecoder(conn)
 	errDec := decoder.Decode(&msg)
