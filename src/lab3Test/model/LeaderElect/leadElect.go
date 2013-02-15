@@ -1,29 +1,30 @@
 package LeaderElect
 
 import (
-	"fmt"
 	"lab3Test/model/Network/message"
 )
 
 var ()
 
-func Elect(leadElect chan []message.Node) {
+func Elect(leadElect chan []message.Node, elected chan message.Node, block chan int) {
 	list := <-leadElect
-	fmt.Println("In leader Elect")
-	fmt.Println("NodeList: ", list)
-	fmt.Println("Oldest process:::")
 	old := findOldest(list)
-	fmt.Println(old)
+	elected <- old
+	block <- 1
 }
 
 func findOldest(list []message.Node) message.Node {
 	var node message.Node
-	for _, v := range list {
+	for i, v := range list {
 		if node.IP == "" {
 			node = v
 		} else {
+			if v.LEAD == true && v.SUSPECTED == true {
+				list[i].LEAD = false
+			}
 			if v.TIME < node.TIME && v.SUSPECTED == false {
-				node = v
+				list[i].LEAD = true
+				node = list[i]
 			}
 		}
 	}

@@ -19,25 +19,42 @@ var (
 )
 
 func init() {
-	name, _ := os.Hostname()
-	addr, _ := net.LookupHost(name)
-	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
-	mcaddr, _ := net.ResolveUDPAddr("udp4", "239.255.43.99:1888")
-	conn, _ := net.ListenMulticastUDP("udp4", nil, mcaddr)
-	conn.SetDeadline(time.Now().Add(5 * time.Second))
-	data := make([]byte, 1024)
-	_, _, err := conn.ReadFromUDP(data)
-	if err != nil {
-		fmt.Println("No leader, setting self")
-		leader = message.Node{IP: UDPAddr.IP.String(), ALIVE: true, LEAD: true, SUSPECTED: false}
-		leaderChan = true
-		fst = true
-	} else {
-		leaderChan = false
-	}
 }
 
-func Listen(nodeChan chan message.Node, startTime int64) {
+func Listen(nodeChan chan message.Node, startTime int64, exit chan bool, nLead message.Node) {
+	name1, _ := os.Hostname()
+	addr1, _ := net.LookupHost(name1)
+	UDPAddr1, _ := net.ResolveUDPAddr("udp4", addr1[0]+":1888")
+	if nLead.IP == "" {
+		mcaddr1, _ := net.ResolveUDPAddr("udp4", "239.255.43.99:1888")
+		conn1, _ := net.ListenMulticastUDP("udp4", nil, mcaddr1)
+		conn1.SetDeadline(time.Now().Add(5 * time.Second))
+		data1 := make([]byte, 1024)
+		_, _, err1 := conn1.ReadFromUDP(data1)
+		if err1 != nil {
+			fmt.Println("No leader, setting self")
+			leader = message.Node{IP: UDPAddr1.IP.String(), ALIVE: true, LEAD: true, SUSPECTED: false}
+			leaderChan = true
+			fst = true
+		} else {
+			leaderChan = false
+		}
+		conn1.Close()
+	} else {
+		if UDPAddr1.IP.String() == nLead.IP {
+			fmt.Println("Leader is selected from leader elect")
+			nLead.LEAD = true
+			leader = nLead
+			fmt.Println("New LEADER UDP", leader)
+			leaderChan = true
+			fst = true
+		} else {
+			leaderChan = false
+		}
+	}
+
+	//---------------------------------------------------------------------------------
+
 	mcaddr, _ := net.ResolveUDPAddr("udp4", "239.255.43.99:1888")
 	conn, _ := net.ListenMulticastUDP("udp4", nil, mcaddr)
 	if fst {
@@ -45,9 +62,9 @@ func Listen(nodeChan chan message.Node, startTime int64) {
 		fst = false
 	}
 	if leaderChan {
-		go BroadcastLeader(mcaddr, conn, leader, startTime)
+		go BroadcastLeader(mcaddr, conn, leader, startTime, exit)
 	} else {
-		go Broadcast(mcaddr, conn, startTime)
+		go Broadcast(mcaddr, conn, startTime, exit)
 	}
 	for {
 		data := make([]byte, 1024)
@@ -66,21 +83,55 @@ func Listen(nodeChan chan message.Node, startTime int64) {
 			}
 		}
 		<-ticker.C
+		timeout := make(chan bool, 1)
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			timeout <- true
+		}()
+		select {
+		case <-exit:
+			fmt.Println("Break udp listen")
+			break
+		case <-timeout:
+		}
 	}
 }
 
-func Broadcast(mcaddr *net.UDPAddr, conn *net.UDPConn, startTime int64) {
-	timer := time.NewTicker(100 * time.Millisecond)
+func Broadcast(mcaddr *net.UDPAddr, conn *net.UDPConn, startTime int64, exit chan bool) {
+	timer := time.NewTicker(1000 * time.Millisecond)
 	for {
 		conn.WriteTo([]byte(strconv.FormatInt(startTime, 10)), mcaddr)
 		<-timer.C
+		timeout := make(chan bool, 1)
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			timeout <- true
+		}()
+		select {
+		case <-exit:
+			fmt.Println("Break udp broadcast")
+			break
+		case <-timeout:
+		}
 	}
 }
 
-func BroadcastLeader(mcaddr *net.UDPAddr, conn *net.UDPConn, lead message.Node, startTime int64) {
-	timer := time.NewTicker(100 * time.Millisecond)
+func BroadcastLeader(mcaddr *net.UDPAddr, conn *net.UDPConn, lead message.Node, startTime int64, exit chan bool) {
+	timer := time.NewTicker(1000 * time.Millisecond)
 	for {
-		conn.WriteTo([]byte("lead:"+lead.IP+":"+strconv.FormatInt(startTime, 10)), mcaddr)
+		str := fmt.Sprintf("lead:%s:%s", lead.IP, strconv.FormatInt(startTime, 10))
+		conn.WriteTo([]byte(str), mcaddr)
 		<-timer.C
+		timeout := make(chan bool, 1)
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			timeout <- true
+		}()
+		select {
+		case <-exit:
+			fmt.Println("Break udp broadcastLeader")
+			break
+		case <-timeout:
+		}
 	}
 }

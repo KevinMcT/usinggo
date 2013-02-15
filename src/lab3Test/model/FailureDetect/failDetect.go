@@ -35,13 +35,14 @@ func Fd(nodes chan message.Node, selfnode message.Node, leadElect chan []message
 				}
 				lnode, err := recieveHartbeat()
 				if lnode.SUSPECTED == true && lnode.IP == "" && err != nil {
-					fmt.Println("Suspecting leader...")
 					for i, v := range nodelist {
 						if v.IP == myLead.IP {
 							nodelist[i].SUSPECTED = true
 						}
+						nodelist[i].LEAD = false
 					}
 					leadElect <- nodelist
+					nodelist = make([]message.Node, 0)
 					break
 				}
 				if err == nil {
