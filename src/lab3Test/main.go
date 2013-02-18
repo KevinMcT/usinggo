@@ -24,6 +24,7 @@ var (
 	tick      = time.NewTimer(5 * time.Second)
 	selfnode  message.Node
 	exitUdp   = make(chan bool, 0)
+	exitReg   = make(chan bool, 0)
 )
 
 func main() {
@@ -32,7 +33,7 @@ func main() {
 	addr, _ := net.LookupHost(name)
 	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
 	go udp.Listen(nodeChan, startTime, exitUdp, nLead)
-	go RegIP()
+	go RegIP(exitReg)
 	<-tick.C
 	time.Sleep(2 * time.Second)
 	if leader.IP != "" && leader.IP == UDPAddr.IP.String() {
@@ -41,19 +42,27 @@ func main() {
 	if leader.IP != UDPAddr.IP.String() {
 		selfnode = message.Node{IP: UDPAddr.IP.String(), TIME: startTime, ALIVE: true, LEAD: false}
 	}
-	var first bool
-	first = true
 	for {
+		if !contains(nodeList, true) {
+			fmt.Println("Has no leader....")
+			exitReg <- true
+			nodeList = make([]message.Node, 0)
+			go RegIP(exitReg)
+		}
 		go FailureDetect.Fd(newNodes, selfnode, leadElect)
 		go LeaderElect.Elect(leadElect, elected, work)
 		<-work
+		exitReg <- true
 		exitUdp <- true
 		exitUdp <- true
 		exitUdp <- true
+		newLd := <-elected
+		if UDPAddr.IP.String() != newLd.IP {
+			time.Sleep(5 * time.Second)
+		}
 		nodeList = make([]message.Node, 0)
 		nodeChan = make(chan message.Node, 10)
 		newNodes = make(chan message.Node, 10)
-		newLd := <-elected
 		nLead = newLd
 		if nLead.IP == UDPAddr.IP.String() {
 			fmt.Println("Leader in main")
@@ -62,20 +71,18 @@ func main() {
 			selfnode.ALIVE = true
 			selfnode.LEAD = true
 			selfnode.IP = UDPAddr.IP.String()
+			nLead.LEAD = true
 		}
-		go udp.Listen(nodeChan, startTime, exitUdp, nLead)
 		if nLead.IP != UDPAddr.IP.String() {
 			fmt.Println("Slave in main")
-			if first {
-				time.Sleep(5 * time.Second)
-				first = false
-			}
 			selfnode = message.Node{IP: UDPAddr.IP.String(), TIME: startTime, ALIVE: true, LEAD: false}
 		}
+		go udp.Listen(nodeChan, startTime, exitUdp, nLead)
+		go RegIP(exitReg)
 	}
 }
 
-func RegIP() {
+func RegIP(exit chan bool) {
 	for {
 		node := <-nodeChan
 		nodeList = AppendIfMissing(nodeList, node)
@@ -84,6 +91,17 @@ func RegIP() {
 				leader = v
 				break
 			}
+		}
+		timeout := make(chan bool, 1)
+		go func() {
+			time.Sleep(100 * time.Millisecond)
+			timeout <- true
+		}()
+		select {
+		case <-exit:
+			fmt.Println("Break RegIP")
+			break
+		case <-timeout:
 		}
 	}
 }
@@ -96,4 +114,13 @@ func AppendIfMissing(slice []message.Node, i message.Node) []message.Node {
 	}
 	newNodes <- i
 	return append(slice, i)
+}
+
+func contains(s []message.Node, e bool) bool {
+	for _, a := range s {
+		if a.LEAD == e {
+			return true
+		}
+	}
+	return false
 }

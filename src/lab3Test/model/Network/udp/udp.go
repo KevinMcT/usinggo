@@ -50,6 +50,8 @@ func Listen(nodeChan chan message.Node, startTime int64, exit chan bool, nLead m
 			fst = true
 		} else {
 			leaderChan = false
+			leader = nLead
+			nodeChan <- nLead
 		}
 	}
 

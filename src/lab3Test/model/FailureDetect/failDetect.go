@@ -8,13 +8,11 @@ import (
 )
 
 var (
-	delay    = time.NewTicker(2 * time.Second)
 	nodelist []message.Node
 	errChan  = make(chan error)
 	inChan   = make(chan interface{})
 	selfnode message.Node
-	timer    = time.NewTicker(1 * time.Second)
-	timer2   = time.NewTicker(2 * time.Second)
+	timer    = time.NewTicker(5 * time.Second)
 	leader   message.Node
 )
 
@@ -28,47 +26,50 @@ func Fd(nodes chan message.Node, selfnode message.Node, leadElect chan []message
 		if len(nodelist) > 1 {
 			if selfnode.LEAD != true {
 				var myLead message.Node
-				for _, v := range nodelist {
+				for i, v := range nodelist {
 					if v.LEAD == true {
-						myLead = v
+						myLead = nodelist[i]
 					}
 				}
-				lnode, err := recieveHartbeat()
-				if lnode.SUSPECTED == true && lnode.IP == "" && err != nil {
-					for i, v := range nodelist {
-						if v.IP == myLead.IP {
-							nodelist[i].SUSPECTED = true
-						}
-						nodelist[i].LEAD = false
-					}
-					leadElect <- nodelist
-					nodelist = make([]message.Node, 0)
-					break
-				}
-				if err == nil {
-					fmt.Println("Recieved Ping from: ", myLead.IP)
-					if lnode.SUSPECTED == true {
+				if myLead.IP != "" {
+					lnode, err := recieveHartbeat()
+					if lnode.SUSPECTED == true && lnode.IP == "" && err != nil {
 						for i, v := range nodelist {
-							if lnode.IP == v.IP {
+							if v.IP == myLead.IP {
 								nodelist[i].SUSPECTED = true
-								fmt.Println("Leader says suspected on ", v.IP)
 							}
+							nodelist[i].LEAD = false
 						}
-					} else {
-						for i, v := range nodelist {
-							if lnode.IP == v.IP {
-								if v.SUSPECTED == true {
-									nodelist[i].SUSPECTED = false
-									fmt.Println("Leader says ok on ", v.IP)
-								} else {
+						leadElect <- nodelist
+						nodelist = make([]message.Node, 0)
+						myLead = message.Node{}
+						break
+					}
+					if err == nil {
+						fmt.Println("Recieved Ping from: ", myLead.IP)
+						if lnode.SUSPECTED == true {
+							for i, v := range nodelist {
+								if lnode.IP == v.IP {
+									nodelist[i].SUSPECTED = true
+									fmt.Println("Leader says suspected on ", v.IP)
+								}
+							}
+						} else {
+							for i, v := range nodelist {
+								if lnode.IP == v.IP {
+									if v.SUSPECTED == true {
+										nodelist[i].SUSPECTED = false
+										fmt.Println("Leader says ok on ", v.IP)
+									} else {
 
+									}
 								}
 							}
 						}
-					}
-					str := sendHartbeat(myLead.IP, selfnode)
-					if str == "ok" {
-						fmt.Println("Sent response to: ", myLead.IP)
+						str := sendHartbeat(myLead.IP, selfnode)
+						if str == "ok" {
+							fmt.Println("Sent response to: ", myLead.IP)
+						}
 					}
 				}
 			} else {
@@ -93,7 +94,6 @@ func Fd(nodes chan message.Node, selfnode message.Node, leadElect chan []message
 							fmt.Println("IP is back!: ", v.IP)
 							suspectedNode = nodelist[i]
 						}
-						<-timer2.C
 					}
 				}
 			}
