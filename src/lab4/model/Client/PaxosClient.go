@@ -10,6 +10,7 @@ import (
 
 func PaxosClient() {
 	ConnectToPaxos()
+
 }
 
 func ConnectToPaxos() {
@@ -23,7 +24,7 @@ func ConnectToPaxos() {
 	checkError(err)
 	defer conn.Close()
 	encoder := gob.NewEncoder(conn)
-	var msg = message.StrMsg{"sender", "content"}
+	var msg = message.ClientRequestMessage{"content"}
 	encoder.Encode(msg)
 }
 
