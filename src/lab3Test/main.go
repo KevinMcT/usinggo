@@ -42,6 +42,7 @@ func main() {
 	if leader.IP != UDPAddr.IP.String() {
 		selfnode = message.Node{IP: UDPAddr.IP.String(), TIME: startTime, ALIVE: true, LEAD: false}
 	}
+
 	for {
 		if !contains(nodeList, true) {
 			fmt.Println("Has no leader....")
@@ -58,7 +59,7 @@ func main() {
 		exitUdp <- true
 		newLd := <-elected
 		if UDPAddr.IP.String() != newLd.IP {
-			time.Sleep(5 * time.Second)
+			time.Sleep(200 * time.Millisecond)
 		}
 		nodeList = make([]message.Node, 0)
 		nodeChan = make(chan message.Node, 10)
