@@ -10,7 +10,7 @@ func init() {
 	gob.Register(Node{})
 	gob.Register(HARTBEATREQUEST{})
 	gob.Register(HARTBEATRESPONSE{})
-	gob.Register(StrMsg{})
+	gob.Register(ClientRequestMessage{})
 }
 
 type Node struct {
@@ -29,7 +29,6 @@ type HARTBEATRESPONSE struct {
 	IP string
 }
 
-type StrMsg struct {
-	Sender  string
+type ClientRequestMessage struct {
 	Content string
 }
