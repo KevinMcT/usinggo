@@ -37,7 +37,7 @@ func Recieve() (message.Node, error) {
 	service := "0.0.0.0:2000"
 	tcpAddr, _ := net.ResolveTCPAddr("tcp", service)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
-	listener.SetDeadline(time.Now().Add(20 * time.Second))
+	listener.SetDeadline(time.Now().Add(600 * time.Millisecond))
 	conn, err2 := listener.Accept()
 	var msg interface{}
 	if err != nil {
