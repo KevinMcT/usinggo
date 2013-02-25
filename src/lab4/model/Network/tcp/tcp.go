@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"lab4/model/Network/message"
 	"net"
-	"os"
 	"time"
 )
 
@@ -37,7 +36,7 @@ func Recieve() (message.Node, error) {
 	service := "0.0.0.0:2000"
 	tcpAddr, _ := net.ResolveTCPAddr("tcp", service)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
-	listener.SetDeadline(time.Now().Add(20 * time.Second))
+	listener.SetDeadline(time.Now().Add(600 * time.Millisecond))
 	conn, err2 := listener.Accept()
 	var msg interface{}
 	if err != nil {
@@ -60,11 +59,4 @@ func Recieve() (message.Node, error) {
 	listener.Close()
 	conn.Close()
 	return node, err
-}
-
-func checkError(err error) {
-	if err != nil {
-		fmt.Println("Fatal error", err.Error())
-		os.Exit(1)
-	}
 }

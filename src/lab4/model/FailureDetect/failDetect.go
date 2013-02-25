@@ -12,7 +12,7 @@ var (
 	errChan  = make(chan error)
 	inChan   = make(chan interface{})
 	selfnode message.Node
-	timer    = time.NewTicker(5 * time.Second)
+	timer    = time.NewTicker(300 * time.Millisecond)
 	leader   message.Node
 )
 
@@ -46,12 +46,12 @@ func Fd(nodes chan message.Node, selfnode message.Node, leadElect chan []message
 						break
 					}
 					if err == nil {
-						fmt.Println("Recieved Ping from: ", myLead.IP)
+						//fmt.Println("Recieved Ping from: ", myLead.IP)
 						if lnode.SUSPECTED == true {
 							for i, v := range nodelist {
 								if lnode.IP == v.IP {
 									nodelist[i].SUSPECTED = true
-									fmt.Println("Leader says suspected on ", v.IP)
+									//fmt.Println("Leader says suspected on ", v.IP)
 								}
 							}
 						} else {
@@ -59,7 +59,7 @@ func Fd(nodes chan message.Node, selfnode message.Node, leadElect chan []message
 								if lnode.IP == v.IP {
 									if v.SUSPECTED == true {
 										nodelist[i].SUSPECTED = false
-										fmt.Println("Leader says ok on ", v.IP)
+										//fmt.Println("Leader says ok on ", v.IP)
 									} else {
 
 									}
@@ -68,30 +68,30 @@ func Fd(nodes chan message.Node, selfnode message.Node, leadElect chan []message
 						}
 						str := sendHartbeat(myLead.IP, selfnode)
 						if str == "ok" {
-							fmt.Println("Sent response to: ", myLead.IP)
+							//fmt.Println("Sent response to: ", myLead.IP)
 						}
 					}
 				}
 			} else {
 				for i, v := range nodelist {
 					if v.IP != selfnode.IP {
-						fmt.Println("Sending to IP: ", v.IP)
+						//fmt.Println("Sending to IP: ", v.IP)
 						str := sendHartbeat(v.IP, suspectedNode)
 						if str == "ok" {
-							slv, err := recieveHartbeat()
+							_, err := recieveHartbeat()
 							if err != nil {
 								fmt.Println(err)
 							}
-							fmt.Println("Response from: ", slv.IP)
+							//fmt.Println("Response from: ", slv.IP)
 						}
 						if str == "suspect" {
 							nodelist[i].SUSPECTED = true
-							fmt.Println("Suspecting IP: ", v.IP)
+							//fmt.Println("Suspecting IP: ", v.IP)
 							suspectedNode = nodelist[i]
 						}
 						if v.SUSPECTED == true && str == "ok" {
 							nodelist[i].SUSPECTED = false
-							fmt.Println("IP is back!: ", v.IP)
+							//fmt.Println("IP is back!: ", v.IP)
 							suspectedNode = nodelist[i]
 						}
 					}

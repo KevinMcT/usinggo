@@ -1,4 +1,4 @@
-package Client
+package main
 
 import (
 	"encoding/gob"
@@ -8,26 +8,29 @@ import (
 	"net"
 )
 
-func PaxosClient() {
+func main() {
 	ConnectToPaxos()
 }
 
 func ConnectToPaxos() {
-	fmt.Println("Enter ip to connecto to")
-	var ip string
-	fmt.Scanf("%s", &ip)
-	fmt.Println("Connecting to Paxos replica")
-	service := ip + ":1337"
-	fmt.Println(service)
-	conn, err := net.Dial("tcp", service)
-	Utils.CheckError(err)
-	defer conn.Close()
-	encoder := gob.NewEncoder(conn)
 
-	var sendMsg = message.ClientRequestMessage{Content: "hello"}
-	var msg interface{}
-	msg = sendMsg
+	for {
+		fmt.Println("Enter ip to connecto to")
+		var ip string
+		fmt.Scanf("%s", &ip)
+		fmt.Println("Connecting to Paxos replica")
+		service := ip + ":1337"
+		fmt.Println(service)
+		conn, err := net.Dial("tcp", service)
+		Utils.CheckError(err)
+		defer conn.Close()
+		encoder := gob.NewEncoder(conn)
 
-	encoder.Encode(&msg)
-	fmt.Println("Message sent to paxos replica")
+		var sendMsg = message.ClientRequestMessage{Content: "hello"}
+		var msg interface{}
+		msg = sendMsg
+
+		encoder.Encode(&msg)
+		fmt.Println("Message sent to paxos replica")
+	}
 }

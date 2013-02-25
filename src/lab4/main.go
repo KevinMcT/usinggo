@@ -20,11 +20,16 @@ func main() {
 		fmt.Scanf("%d", &in)
 		switch in {
 		case 1:
+			fmt.Println("Starting Paxos client...")
 			Client.PaxosClient()
+			break
 		case 2:
-			Replica.Main()
+			fmt.Println("Starting Paxos replica...")
+			Replica.PaxosReplica()
+			break
 		case 0:
 			tot = false
+			break
 		}
 	}
 }

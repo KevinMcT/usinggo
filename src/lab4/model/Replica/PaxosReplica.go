@@ -1,4 +1,4 @@
-package Replica
+package main
 
 import (
 	"encoding/gob"
@@ -30,14 +30,13 @@ var (
 	exitReg    = make(chan bool, 0)
 )
 
-func Main() {
+func main() {
 	startTime := time.Now().UnixNano()
 	name, _ := os.Hostname()
 	addr, _ := net.LookupHost(name)
 	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
 	go udp.Listen(nodeChan, startTime, exitUdp, nLead)
 	go RegIP(exitReg)
-	go ClientConnection()
 	<-tick.C
 	time.Sleep(2 * time.Second)
 	if leader.IP != "" && leader.IP == UDPAddr.IP.String() {
@@ -46,6 +45,7 @@ func Main() {
 	if leader.IP != UDPAddr.IP.String() {
 		selfnode = message.Node{IP: UDPAddr.IP.String(), TIME: startTime, ALIVE: true, LEAD: false}
 	}
+	go ClientConnection()
 	for {
 		if !contains(nodeList, true) {
 			fmt.Println("Has no leader....")
@@ -62,7 +62,7 @@ func Main() {
 		exitUdp <- true
 		newLd := <-elected
 		if UDPAddr.IP.String() != newLd.IP {
-			time.Sleep(5 * time.Second)
+			time.Sleep(200 * time.Millisecond)
 		}
 		nodeList = make([]message.Node, 0)
 		nodeChan = make(chan message.Node, 10)
