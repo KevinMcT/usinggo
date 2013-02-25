@@ -1,7 +1,7 @@
 package LeaderElect
 
 import (
-	"lab3Test/model/Network/message"
+	"lab4/model/Network/message"
 )
 
 var ()

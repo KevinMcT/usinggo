@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"lab4/model/Client"
+	"lab4/model/Replica"
 )
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 		case 1:
 			Client.PaxosClient()
 		case 2:
-			fmt.Println("Not Implemented yet!!!")
+			Replica.Main()
 		case 0:
 			tot = false
 		}

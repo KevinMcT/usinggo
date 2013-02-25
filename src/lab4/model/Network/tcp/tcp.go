@@ -3,7 +3,7 @@ package tcp
 import (
 	"encoding/gob"
 	"fmt"
-	"lab3Test/model/Network/message"
+	"lab4/model/Network/message"
 	"net"
 	"os"
 	"time"

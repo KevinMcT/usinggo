@@ -2,8 +2,8 @@ package FailureDetect
 
 import (
 	"fmt"
-	"lab3Test/model/Network/message"
-	"lab3Test/model/Network/tcp"
+	"lab4/model/Network/message"
+	"lab4/model/Network/tcp"
 	"time"
 )
 

@@ -1,39 +1,43 @@
 package Replica
 
 import (
+	"encoding/gob"
 	"fmt"
-	"lab3Test/model/FailureDetect"
-	"lab3Test/model/LeaderElect"
-	"lab3Test/model/Network/message"
-	"lab3Test/model/Network/udp"
+	"lab4/Utils"
+	"lab4/model/FailureDetect"
+	"lab4/model/LeaderElect"
+	"lab4/model/Network/message"
+	"lab4/model/Network/udp"
 	"net"
 	"os"
 	"time"
 )
 
 var (
-	nodeChan  = make(chan message.Node, 10)
-	newNodes  = make(chan message.Node, 10)
-	nodeList  = make([]message.Node, 0)
-	leadElect = make(chan []message.Node, 10)
-	elected   = make(chan message.Node, 1)
-	work      = make(chan int, 0)
-	wait      = make(chan int, 0)
-	leader    message.Node
-	nLead     message.Node
-	tick      = time.NewTimer(5 * time.Second)
-	selfnode  message.Node
-	exitUdp   = make(chan bool, 0)
-	exitReg   = make(chan bool, 0)
+	nodeChan   = make(chan message.Node, 10)
+	newNodes   = make(chan message.Node, 10)
+	nodeList   = make([]message.Node, 0)
+	leadElect  = make(chan []message.Node, 10)
+	elected    = make(chan message.Node, 1)
+	work       = make(chan int, 0)
+	wait       = make(chan int, 0)
+	leader     message.Node //My leader node
+	nLead      message.Node
+	tick       = time.NewTimer(5 * time.Second)
+	clientTick = time.NewTimer(10 * time.Second)
+	selfnode   message.Node
+	exitUdp    = make(chan bool, 0)
+	exitReg    = make(chan bool, 0)
 )
 
-func main() {
+func Main() {
 	startTime := time.Now().UnixNano()
 	name, _ := os.Hostname()
 	addr, _ := net.LookupHost(name)
 	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
 	go udp.Listen(nodeChan, startTime, exitUdp, nLead)
 	go RegIP(exitReg)
+	go ClientConnection()
 	<-tick.C
 	time.Sleep(2 * time.Second)
 	if leader.IP != "" && leader.IP == UDPAddr.IP.String() {
@@ -102,6 +106,41 @@ func RegIP(exit chan bool) {
 			fmt.Println("Break RegIP")
 			break
 		case <-timeout:
+		}
+	}
+}
+
+func ClientConnection() {
+	fmt.Println("Im waiting bitches!!")
+	service := "0.0.0.0:1337"
+	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
+	Utils.CheckError(err)
+	listener, err := net.ListenTCP("tcp", tcpAddr)
+	for {
+		Utils.CheckError(err)
+		conn, err := listener.Accept()
+
+		// I`m leader, must handle request
+		if leader.IP == selfnode.IP {
+			fmt.Println("Im leader, doing shit!")
+
+			decoder := gob.NewDecoder(conn)
+			fmt.Println("Got a message give me a sec...")
+			var msg interface{}
+			err = decoder.Decode(&msg)
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println(msg)
+			if msg != nil {
+				var clientMsg message.ClientRequestMessage
+				clientMsg = msg.(message.ClientRequestMessage)
+				fmt.Println("Here`s the message:")
+				fmt.Println(clientMsg.Content)
+				fmt.Println("Im out!")
+			}
+		} else { // not leader, send it to the leader node
+			fmt.Println("Im not leader, send it on!")
 		}
 	}
 }

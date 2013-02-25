@@ -2,7 +2,7 @@ package udp
 
 import (
 	"fmt"
-	"lab3Test/model/Network/message"
+	"lab4/model/Network/message"
 	"net"
 	"os"
 	"strconv"

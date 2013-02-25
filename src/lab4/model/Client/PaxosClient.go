@@ -3,14 +3,13 @@ package Client
 import (
 	"encoding/gob"
 	"fmt"
+	"lab4/Utils"
 	"lab4/model/Network/message"
 	"net"
-	"os"
 )
 
 func PaxosClient() {
 	ConnectToPaxos()
-
 }
 
 func ConnectToPaxos() {
@@ -21,16 +20,14 @@ func ConnectToPaxos() {
 	service := ip + ":1337"
 	fmt.Println(service)
 	conn, err := net.Dial("tcp", service)
-	checkError(err)
+	Utils.CheckError(err)
 	defer conn.Close()
 	encoder := gob.NewEncoder(conn)
-	var msg = message.ClientRequestMessage{"content"}
-	encoder.Encode(msg)
-}
 
-func checkError(err error) {
-	if err != nil {
-		fmt.Println("Fatal error", err.Error())
-		os.Exit(1)
-	}
+	var sendMsg = message.ClientRequestMessage{Content: "hello"}
+	var msg interface{}
+	msg = sendMsg
+
+	encoder.Encode(&msg)
+	fmt.Println("Message sent to paxos replica")
 }
