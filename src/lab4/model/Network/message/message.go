@@ -4,13 +4,16 @@ import (
 	"encoding/gob"
 )
 
-var ()
+var (
+	ClientChan chan ClientRequestMessage
+)
 
 func init() {
 	gob.Register(Node{})
 	gob.Register(HARTBEATREQUEST{})
 	gob.Register(HARTBEATRESPONSE{})
 	gob.Register(ClientRequestMessage{})
+	ClientChan = make(chan ClientRequestMessage, 10)
 }
 
 type Node struct {

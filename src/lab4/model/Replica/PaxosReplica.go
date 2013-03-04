@@ -8,14 +8,20 @@ import (
 	"lab4/model/LeaderElect"
 	"lab4/model/Network/message"
 	"lab4/model/Network/udp"
+	"lab4/model/Paxos"
 	"net"
 	"os"
 	"time"
 )
 
 var (
-	nodeChan   = make(chan message.Node, 10)
-	newNodes   = make(chan message.Node, 10)
+	nodeChan      = make(chan message.Node, 10)
+	newNodes      = make(chan message.Node, 10)
+	newNodesPaxos = make(chan message.Node, 10)
+
+	acceptorChan = make(chan string, 10)
+	proposerChan = make(chan message.Learn, 10)
+
 	nodeList   = make([]message.Node, 0)
 	leadElect  = make(chan []message.Node, 10)
 	elected    = make(chan message.Node, 1)
@@ -45,7 +51,6 @@ func main() {
 	if leader.IP != UDPAddr.IP.String() {
 		selfnode = message.Node{IP: UDPAddr.IP.String(), TIME: startTime, ALIVE: true, LEAD: false}
 	}
-	go ClientConnection()
 	for {
 		if !contains(nodeList, true) {
 			fmt.Println("Has no leader....")
@@ -53,7 +58,13 @@ func main() {
 			nodeList = make([]message.Node, 0)
 			go RegIP(exitReg)
 		}
+		go ClientConnection()
+		go Paxos.Acceptor(leader, selfnode, newNodesPaxos, acceptorChan)
+		go Paxos.Proposer()
+		go Paxos.Learner()
+		go Paxos.PaxosHandler()
 		go FailureDetect.Fd(newNodes, selfnode, leadElect)
+
 		go LeaderElect.Elect(leadElect, elected, work)
 		<-work
 		exitReg <- true
@@ -119,28 +130,31 @@ func ClientConnection() {
 	for {
 		Utils.CheckError(err)
 		conn, err := listener.Accept()
-
-		// I`m leader, must handle request
-		if leader.IP == selfnode.IP {
-			fmt.Println("Im leader, doing shit!")
-
-			decoder := gob.NewDecoder(conn)
-			fmt.Println("Got a message give me a sec...")
-			var msg interface{}
-			err = decoder.Decode(&msg)
-			if err != nil {
-				fmt.Println(err)
+		decoder := gob.NewDecoder(conn)
+		var msg interface{}
+		err = decoder.Decode(&msg)
+		if err != nil {
+			fmt.Println(err)
+		}
+		if msg != nil {
+			var clientMsg message.ClientRequestMessage
+			clientMsg = msg.(message.ClientRequestMessage)
+			if leader.IP == selfnode.IP {
+				acceptorChan <- clientMsg.Content
+			} else {
+				fmt.Println("Im not leader, sending it on!")
+				leaderService := leader.IP + ":1337"
+				fmt.Println(leaderService)
+				leaderCon, err := net.Dial("tcp", leaderService)
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					encoder := gob.NewEncoder(leaderCon)
+					msg = clientMsg
+					encoder.Encode(&msg)
+				}
+				leaderCon.Close()
 			}
-			fmt.Println(msg)
-			if msg != nil {
-				var clientMsg message.ClientRequestMessage
-				clientMsg = msg.(message.ClientRequestMessage)
-				fmt.Println("Here`s the message:")
-				fmt.Println(clientMsg.Content)
-				fmt.Println("Im out!")
-			}
-		} else { // not leader, send it to the leader node
-			fmt.Println("Im not leader, send it on!")
 		}
 	}
 }
@@ -152,6 +166,7 @@ func AppendIfMissing(slice []message.Node, i message.Node) []message.Node {
 		}
 	}
 	newNodes <- i
+	newNodesPaxos <- i
 	return append(slice, i)
 }
 
