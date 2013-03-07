@@ -26,7 +26,7 @@ func ConnectToPaxos() {
 		defer conn.Close()
 		encoder := gob.NewEncoder(conn)
 
-		var sendMsg = message.ClientRequestMessage{Content: "hello"}
+		var sendMsg = message.ClientRequestMessage{Content: "Hello world!"}
 		var msg interface{}
 		msg = sendMsg
 

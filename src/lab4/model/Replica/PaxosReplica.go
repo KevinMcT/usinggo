@@ -59,8 +59,8 @@ func main() {
 			go RegIP(exitReg)
 		}
 		go ClientConnection()
-		go Paxos.Acceptor(leader, selfnode, newNodesPaxos, acceptorChan)
-		go Paxos.Proposer()
+		go Paxos.Acceptor()
+		go Paxos.Proposer(leader, selfnode, newNodesPaxos, acceptorChan)
 		go Paxos.Learner()
 		go Paxos.PaxosHandler()
 		go FailureDetect.Fd(newNodes, selfnode, leadElect)
