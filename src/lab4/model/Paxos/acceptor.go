@@ -53,16 +53,16 @@ func sendLearn(address string) {
 		sendAddress := v.IP + ":1338"
 		fmt.Println("Sending learn to ", sendAddress)
 		sendConn, err := net.Dial("tcp", sendAddress)
-		if err != nil {
-			fmt.Println(err)
-		} else {
+		if err == nil {
 			encoder := gob.NewEncoder(sendConn)
 			var learn = message.Learn{ROUND: round, VALUE: acceptedValue}
 			var msg interface{}
 			msg = learn
 			encoder.Encode(&msg)
+			sendConn.Close()
+		} else {
+			fmt.Println("Cannot send learn to node")
 		}
-		sendConn.Close()
 	}
 }
 
@@ -70,14 +70,14 @@ func sendPromise(address string) {
 	address = address + ":1338"
 	fmt.Println("Sending promise to ", address)
 	conn, err := net.Dial("tcp", address)
-	if err != nil {
-		fmt.Println(err)
-	} else {
+	if err == nil {
 		encoder := gob.NewEncoder(conn)
 		var promise = message.Promise{ROUND: promisedRound, LASTACCEPTEDROUND: lastAcceptedRound, LASTACCEPTEDVALUE: lastAcceptedValue}
 		var msg interface{}
 		msg = promise
 		encoder.Encode(&msg)
+		conn.Close()
+	} else {
+		fmt.Println("Cannot send promise to node")
 	}
-	conn.Close()
 }

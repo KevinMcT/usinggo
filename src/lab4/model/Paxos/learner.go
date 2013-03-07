@@ -31,7 +31,7 @@ func receivedLearn() {
 			if strings.EqualFold(learnMsg.VALUE, value) == true {
 				learns = learns + 1
 			}
-			if learns > ((len(nodeList) / 2) + 1) {
+			if learns > (len(nodeList) / 2) {
 				fmt.Println("Learnt value ", value)
 				learns = -1
 				value = ""

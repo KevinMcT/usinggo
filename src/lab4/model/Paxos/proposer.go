@@ -6,7 +6,12 @@ import (
 	//lab4/Utils"
 	"lab4/model/Network/message"
 	"net"
+	"time"
 )
+
+type Pair struct {
+	Key, Value string
+}
 
 var (
 	leader      message.Node
@@ -14,13 +19,19 @@ var (
 	nodeList    = make([]message.Node, 0)
 	round       int
 	clientValue string
+	promiseList = make([]message.Promise, 0)
+	wait        = make(chan string, 1)
+	waiting     bool
 )
 
 func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan string) {
 	round = 0
 	self = me
+	waiting = false
 	go fillNodelist(nc)
 	go receviedPromise()
+	go waitForPromise()
+	//go sendAccept()
 	for {
 		cv := <-ac
 		clientValue = cv
@@ -53,39 +64,82 @@ func sendPrepare() {
 		sendAddress := v.IP + ":1338"
 		fmt.Println("Sending prepare to ", sendAddress)
 		sendConn, err := net.Dial("tcp", sendAddress)
-		if err != nil {
-			fmt.Println(err)
-		} else {
+		if err == nil {
 			encoder := gob.NewEncoder(sendConn)
 			var prepare = message.Prepare{ROUND: round}
 			var msg interface{}
 			msg = prepare
 			encoder.Encode(&msg)
+			sendConn.Close()
+		} else {
+			fmt.Println("Cannot send prepare to node")
 		}
-		sendConn.Close()
+	}
+}
+
+func sendAccept() {
+	for _, v := range nodeList {
+		address := v.IP + ":1338"
+		fmt.Println("Sending accept to ", address)
+		conn, err := net.Dial("tcp", address)
+		if err == nil {
+			encoder := gob.NewEncoder(conn)
+			var accept = message.Accept{ROUND: round, VALUE: clientValue}
+			var msg interface{}
+			msg = accept
+			encoder.Encode(&msg)
+			conn.Close()
+		} else {
+			fmt.Println("Cannot send accept to node")
+		}
 	}
 }
 
 func receviedPromise() {
 	for {
 		value := <-message.PromiseChan
-		promiseMsg := value.Message.(message.Promise)
-		if promiseMsg.ROUND == round {
-			address := value.Ip + ":1338"
-			fmt.Println("Sending accept to ", address)
-			conn, err := net.Dial("tcp", address)
-			if err != nil {
-				fmt.Println(err)
-			} else {
-				encoder := gob.NewEncoder(conn)
-				var accept = message.Accept{ROUND: round, VALUE: clientValue}
-				var msg interface{}
-				msg = accept
-				encoder.Encode(&msg)
-			}
-			conn.Close()
-		} else {
-			fmt.Println("Node promised to higher round, not sending accept")
+		fmt.Println(promiseList)
+		if waiting == false {
+			wait <- "wait"
+		}
+		promiseList = append(promiseList, value.Message.(message.Promise))
+	}
+}
+
+func waitForPromise() {
+	for {
+		<-wait
+		waiting = true
+		time.Sleep(2 * time.Second)
+		waiting = false
+		checkPromises()
+	}
+}
+
+func checkPromises() {
+	allDefault := true
+	for _, pMsg := range promiseList {
+		if pMsg.LASTACCEPTEDVALUE != "-1" {
+			allDefault = false
 		}
 	}
+	if allDefault == true {
+		sendAccept()
+		promiseList = make([]message.Promise, 0)
+	} else {
+		pickValueFromProposeList()
+	}
+}
+
+func pickValueFromProposeList() {
+	var largestRound int = 0
+	var largestRoundValue string = ""
+	for _, pMsg := range promiseList {
+		if pMsg.LASTACCEPTEDROUND > largestRound {
+			largestRound = pMsg.LASTACCEPTEDROUND
+			largestRoundValue = pMsg.LASTACCEPTEDVALUE
+		}
+	}
+	clientValue = largestRoundValue
+	sendAccept()
 }

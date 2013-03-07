@@ -18,6 +18,11 @@ func ConnectToPaxos() {
 		fmt.Println("Enter ip to connecto to")
 		var ip string
 		fmt.Scanf("%s", &ip)
+
+		fmt.Println("Enter a value to send")
+		var st string
+		fmt.Scanf("%s", &st)
+
 		fmt.Println("Connecting to Paxos replica")
 		service := ip + ":1337"
 		fmt.Println(service)
@@ -26,7 +31,7 @@ func ConnectToPaxos() {
 		defer conn.Close()
 		encoder := gob.NewEncoder(conn)
 
-		var sendMsg = message.ClientRequestMessage{Content: "Hello world!"}
+		var sendMsg = message.ClientRequestMessage{Content: st}
 		var msg interface{}
 		msg = sendMsg
 
