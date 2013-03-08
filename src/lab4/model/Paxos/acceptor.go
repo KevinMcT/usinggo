@@ -29,6 +29,7 @@ func receivedPrepare() {
 	for {
 		value := <-message.PrepareChan
 		fmt.Println("Received Prepare for round ", value.Message.(message.Prepare).ROUND)
+		fmt.Println("Received round:", value.Message.(message.Prepare).ROUND)
 		promisedRound = value.Message.(message.Prepare).ROUND
 		sendPromise(value.Ip)
 	}
@@ -37,8 +38,10 @@ func receivedPrepare() {
 func receivedAccept() {
 	for {
 		value := <-message.AcceptChan
-		fmt.Println("Received accept!")
 		acceptMsg := value.Message.(message.Accept)
+		fmt.Println("Received accept with value", acceptMsg.VALUE)
+		fmt.Println("PromiseRound: ", promisedRound)
+		fmt.Println("acceptRound: ", acceptMsg.ROUND)
 		if acceptMsg.ROUND == promisedRound {
 			acceptedValue = acceptMsg.VALUE
 			lastAcceptedValue = acceptedValue
@@ -51,11 +54,13 @@ func receivedAccept() {
 func sendLearn(address string) {
 	for _, v := range nodeList {
 		sendAddress := v.IP + ":1338"
-		fmt.Println("Sending learn to ", sendAddress)
 		sendConn, err := net.Dial("tcp", sendAddress)
 		if err == nil {
 			encoder := gob.NewEncoder(sendConn)
-			var learn = message.Learn{ROUND: round, VALUE: acceptedValue}
+			fmt.Println("round: ", round)
+			var learn = message.Learn{ROUND: promisedRound, VALUE: acceptedValue}
+			fmt.Println("Sending learn ", learn)
+			fmt.Println("Learn: ", learn)
 			var msg interface{}
 			msg = learn
 			encoder.Encode(&msg)
@@ -72,6 +77,7 @@ func sendPromise(address string) {
 	conn, err := net.Dial("tcp", address)
 	if err == nil {
 		encoder := gob.NewEncoder(conn)
+		fmt.Println("PromisRound", promisedRound)
 		var promise = message.Promise{ROUND: promisedRound, LASTACCEPTEDROUND: lastAcceptedRound, LASTACCEPTEDVALUE: lastAcceptedValue}
 		var msg interface{}
 		msg = promise

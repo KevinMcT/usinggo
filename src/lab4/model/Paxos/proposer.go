@@ -14,14 +14,14 @@ type Pair struct {
 }
 
 var (
-	leader      message.Node
-	self        message.Node
-	nodeList    = make([]message.Node, 0)
-	round       int
-	clientValue string
-	promiseList = make([]message.Promise, 0)
-	wait        = make(chan string, 1)
-	waiting     bool
+	leader         message.Node
+	self           message.Node
+	nodeList       = make([]message.Node, 0)
+	round          int
+	clientValue    string
+	promiseList    = make([]message.Promise, 0)
+	waitPromisChan = make(chan string, 1)
+	waiting        bool
 )
 
 func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan string) {
@@ -31,7 +31,6 @@ func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan s
 	go fillNodelist(nc)
 	go receviedPromise()
 	go waitForPromise()
-	//go sendAccept()
 	for {
 		cv := <-ac
 		clientValue = cv
@@ -98,9 +97,8 @@ func sendAccept() {
 func receviedPromise() {
 	for {
 		value := <-message.PromiseChan
-		fmt.Println(promiseList)
 		if waiting == false {
-			wait <- "wait"
+			waitPromisChan <- "wait"
 		}
 		promiseList = append(promiseList, value.Message.(message.Promise))
 	}
@@ -108,22 +106,29 @@ func receviedPromise() {
 
 func waitForPromise() {
 	for {
-		<-wait
+		<-waitPromisChan
 		waiting = true
 		time.Sleep(2 * time.Second)
 		waiting = false
+		fmt.Println(promiseList)
 		checkPromises()
 	}
 }
 
 func checkPromises() {
 	allDefault := true
+	allNotDefault := true
 	for _, pMsg := range promiseList {
 		if pMsg.LASTACCEPTEDVALUE != "-1" {
 			allDefault = false
 		}
+		if pMsg.LASTACCEPTEDVALUE == "-1" {
+			allNotDefault = false
+		}
 	}
-	if allDefault == true {
+	fmt.Println("allDefault: ", allDefault)
+	fmt.Println("allNotDefault: ", allNotDefault)
+	if allDefault == true || allNotDefault == true {
 		sendAccept()
 		promiseList = make([]message.Promise, 0)
 	} else {
@@ -142,4 +147,5 @@ func pickValueFromProposeList() {
 	}
 	clientValue = largestRoundValue
 	sendAccept()
+	promiseList = make([]message.Promise, 0)
 }

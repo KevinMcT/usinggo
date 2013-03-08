@@ -58,14 +58,15 @@ func main() {
 			nodeList = make([]message.Node, 0)
 			go RegIP(exitReg)
 		}
+
 		go ClientConnection()
 		go Paxos.Acceptor()
 		go Paxos.Proposer(leader, selfnode, newNodesPaxos, acceptorChan)
 		go Paxos.Learner()
 		go Paxos.PaxosHandler()
 		go FailureDetect.Fd(newNodes, selfnode, leadElect)
-
 		go LeaderElect.Elect(leadElect, elected, work)
+
 		<-work
 		exitReg <- true
 		exitUdp <- true

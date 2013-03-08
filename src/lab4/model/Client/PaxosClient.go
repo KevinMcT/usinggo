@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/gob"
 	"fmt"
-	"lab4/Utils"
 	"lab4/model/Network/message"
 	"net"
 )
@@ -19,23 +18,25 @@ func ConnectToPaxos() {
 		var ip string
 		fmt.Scanf("%s", &ip)
 
-		fmt.Println("Enter a value to send")
-		var st string
-		fmt.Scanf("%s", &st)
-
 		fmt.Println("Connecting to Paxos replica")
 		service := ip + ":1337"
 		fmt.Println(service)
 		conn, err := net.Dial("tcp", service)
-		Utils.CheckError(err)
-		defer conn.Close()
-		encoder := gob.NewEncoder(conn)
+		if err == nil {
+			fmt.Println("Enter a value to send")
+			var st string
+			fmt.Scanf("%s", &st)
+			defer conn.Close()
+			encoder := gob.NewEncoder(conn)
 
-		var sendMsg = message.ClientRequestMessage{Content: st}
-		var msg interface{}
-		msg = sendMsg
+			var sendMsg = message.ClientRequestMessage{Content: st}
+			var msg interface{}
+			msg = sendMsg
 
-		encoder.Encode(&msg)
-		fmt.Println("Message sent to paxos replica")
+			encoder.Encode(&msg)
+			fmt.Println("Message sent to paxos replica")
+		} else {
+			fmt.Println("Seems like the node you are trying to connect is gone down or does not exist. Please try another address")
+		}
 	}
 }
