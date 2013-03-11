@@ -31,6 +31,7 @@ func HandlePaxosMessages() {
 		if err != nil {
 			fmt.Println(err)
 		}
+		conn.Close()
 		if msg != nil {
 			remote := conn.RemoteAddr().String()
 			remoteSplit := strings.Split(remote, ":")

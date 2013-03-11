@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"lab4/model/Network/message"
 	"lab4/model/Network/tcp"
+	"lab4/model/RoundVar"
 	"time"
 )
 
@@ -132,5 +133,6 @@ func fillNodelist(nc chan message.Node, self message.Node) {
 		}
 		fmt.Println("added: ", node)
 		nodelist = append(nodelist, node)
+		RoundVar.GetRound().List = nodelist
 	}
 }

@@ -21,19 +21,18 @@ var (
 
 	acceptorChan = make(chan string, 10)
 	proposerChan = make(chan message.Learn, 10)
-
-	nodeList   = make([]message.Node, 0)
-	leadElect  = make(chan []message.Node, 10)
-	elected    = make(chan message.Node, 1)
-	work       = make(chan int, 0)
-	wait       = make(chan int, 0)
-	leader     message.Node //My leader node
-	nLead      message.Node
-	tick       = time.NewTimer(5 * time.Second)
-	clientTick = time.NewTimer(10 * time.Second)
-	selfnode   message.Node
-	exitUdp    = make(chan bool, 0)
-	exitReg    = make(chan bool, 0)
+	nodeList     = make([]message.Node, 0)
+	leadElect    = make(chan []message.Node, 10)
+	elected      = make(chan message.Node, 1)
+	work         = make(chan int, 0)
+	wait         = make(chan int, 0)
+	leader       message.Node //My leader node
+	nLead        message.Node
+	tick         = time.NewTimer(5 * time.Second)
+	clientTick   = time.NewTimer(10 * time.Second)
+	selfnode     message.Node
+	exitUdp      = make(chan bool, 0)
+	exitReg      = make(chan bool, 0)
 )
 
 func main() {
@@ -43,6 +42,11 @@ func main() {
 	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
 	go udp.Listen(nodeChan, startTime, exitUdp, nLead)
 	go RegIP(exitReg)
+	go ClientConnection()
+	go Paxos.Acceptor()
+	go Paxos.Learner()
+	go Paxos.PaxosHandler()
+
 	<-tick.C
 	time.Sleep(2 * time.Second)
 	if leader.IP != "" && leader.IP == UDPAddr.IP.String() {
@@ -59,11 +63,7 @@ func main() {
 			go RegIP(exitReg)
 		}
 
-		go ClientConnection()
-		go Paxos.Acceptor()
 		go Paxos.Proposer(leader, selfnode, newNodesPaxos, acceptorChan)
-		go Paxos.Learner()
-		go Paxos.PaxosHandler()
 		go FailureDetect.Fd(newNodes, selfnode, leadElect)
 		go LeaderElect.Elect(leadElect, elected, work)
 
@@ -123,7 +123,7 @@ func RegIP(exit chan bool) {
 }
 
 func ClientConnection() {
-	fmt.Println("Im waiting bitches!!")
+	fmt.Println("Waiting for inncoming clients")
 	service := "0.0.0.0:1337"
 	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	Utils.CheckError(err)
@@ -137,6 +137,7 @@ func ClientConnection() {
 		if err != nil {
 			fmt.Println(err)
 		}
+		conn.Close()
 		if msg != nil {
 			var clientMsg message.ClientRequestMessage
 			clientMsg = msg.(message.ClientRequestMessage)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	//lab4/Utils"
 	"lab4/model/Network/message"
+	"lab4/model/RoundVar"
 	"net"
 	"time"
 )
@@ -25,10 +26,9 @@ var (
 )
 
 func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan string) {
-	round = 0
+	round = RoundVar.GetRound().Round
 	self = me
 	waiting = false
-	go fillNodelist(nc)
 	go receviedPromise()
 	go waitForPromise()
 	for {
@@ -52,16 +52,14 @@ func fillNodelist(nc chan message.Node) {
 		if node.LEAD == true {
 			leader = node
 		}
-		nodeList = append(nodeList, node)
 	}
 }
 
 func sendPrepare() {
-	fmt.Println(nodeList)
+	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
 		//Send prepare
 		sendAddress := v.IP + ":1338"
-		fmt.Println("Sending prepare to ", sendAddress)
 		sendConn, err := net.Dial("tcp", sendAddress)
 		if err == nil {
 			encoder := gob.NewEncoder(sendConn)
@@ -77,9 +75,9 @@ func sendPrepare() {
 }
 
 func sendAccept() {
+	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
 		address := v.IP + ":1338"
-		fmt.Println("Sending accept to ", address)
 		conn, err := net.Dial("tcp", address)
 		if err == nil {
 			encoder := gob.NewEncoder(conn)
@@ -126,8 +124,6 @@ func checkPromises() {
 			allNotDefault = false
 		}
 	}
-	fmt.Println("allDefault: ", allDefault)
-	fmt.Println("allNotDefault: ", allNotDefault)
 	if allDefault == true || allNotDefault == true {
 		sendAccept()
 		promiseList = make([]message.Promise, 0)
