@@ -1,29 +1,28 @@
 package machine
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 )
 
 var (
-	machine     t_Machine
+	machine     T_Machine
 	inputString string
 )
 
-type t_Machine struct {
+type T_Machine struct {
 	IP   string
-	ROLE string
+	LEAD bool
 	TIME int64
 }
 
-func Machine(inputChan chan string) {
+func Machine(inputChan chan string, outputChan chan T_Machine) {
 	for {
 		inputString := <-inputChan
 		result := strings.Split(inputString, ":")
 		machine.IP = result[0]
 		t, _ := strconv.ParseInt(result[1], 10, 64)
 		machine.TIME = t
-		fmt.Println(machine)
+		outputChan <- machine
 	}
 }
