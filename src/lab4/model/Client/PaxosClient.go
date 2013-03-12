@@ -1,4 +1,4 @@
-package main
+package Client
 
 import (
 	"encoding/gob"
@@ -7,7 +7,7 @@ import (
 	"net"
 )
 
-func main() {
+func PaxosClient() {
 	ConnectToPaxos()
 }
 

@@ -1,4 +1,4 @@
-package main
+package Replica
 
 import (
 	"encoding/gob"
@@ -35,7 +35,7 @@ var (
 	exitReg      = make(chan bool, 0)
 )
 
-func main() {
+func PaxosReplica() {
 	startTime := time.Now().UnixNano()
 	name, _ := os.Hostname()
 	addr, _ := net.LookupHost(name)
