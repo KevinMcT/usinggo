@@ -40,25 +40,9 @@ func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan s
 	}
 }
 
-func fillNodelist(nc chan message.Node) {
-	if self.LEAD == false {
-		nodeList = append(nodeList, self)
-	}
-	if self.LEAD == true {
-		leader = self
-	}
-	for {
-		node := <-nc
-		if node.LEAD == true {
-			leader = node
-		}
-	}
-}
-
 func sendPrepare() {
 	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
-		//Send prepare
 		sendAddress := v.IP + ":1338"
 		sendConn, err := net.Dial("tcp", sendAddress)
 		if err == nil {
@@ -102,6 +86,10 @@ func receviedPromise() {
 	}
 }
 
+/*
+After the first promise has been received
+we start a timer to wait for the rest.
+*/
 func waitForPromise() {
 	for {
 		<-waitPromisChan
@@ -112,18 +100,18 @@ func waitForPromise() {
 	}
 }
 
+/*
+When wait is finished we check to see if a value is in the promises.
+*/
 func checkPromises() {
 	allDefault := true
-	allNotDefault := true
+	//allNotDefault := true
 	for _, pMsg := range promiseList {
 		if pMsg.LASTACCEPTEDVALUE != "-1" {
 			allDefault = false
 		}
-		if pMsg.LASTACCEPTEDVALUE == "-1" {
-			allNotDefault = false
-		}
 	}
-	if allDefault == true || allNotDefault == true {
+	if allDefault == true {
 		sendAccept()
 		promiseList = make([]message.Promise, 0)
 	} else {
@@ -131,6 +119,9 @@ func checkPromises() {
 	}
 }
 
+/*
+Method for choosing a value from all the promises.
+*/
 func pickValueFromProposeList() {
 	var largestRound int = 0
 	var largestRoundValue string = ""

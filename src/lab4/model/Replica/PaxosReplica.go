@@ -1,4 +1,4 @@
-package Replica
+package main
 
 import (
 	"encoding/gob"
@@ -35,11 +35,11 @@ var (
 	exitReg      = make(chan bool, 0)
 )
 
-func PaxosReplica() {
+func main() {
 	startTime := time.Now().UnixNano()
 	name, _ := os.Hostname()
 	addr, _ := net.LookupHost(name)
-	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
+	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1890")
 	go udp.Listen(nodeChan, startTime, exitUdp, nLead)
 	go RegIP(exitReg)
 	go ClientConnection()
@@ -67,6 +67,8 @@ func PaxosReplica() {
 		go FailureDetect.Fd(newNodes, selfnode, leadElect)
 		go LeaderElect.Elect(leadElect, elected, work)
 
+		//When something comes inn on this channel we want to start the system 
+		//over again.
 		<-work
 		exitReg <- true
 		exitUdp <- true
@@ -122,6 +124,11 @@ func RegIP(exit chan bool) {
 	}
 }
 
+/*
+Method for listning after client requests. If this instance is the
+leader of the paxos system he sends the message on to the proposer. If
+not the message is redirected to the node that is the leader.
+*/
 func ClientConnection() {
 	fmt.Println("Waiting for inncoming clients")
 	service := "0.0.0.0:1337"

@@ -9,6 +9,12 @@ import (
 	"strings"
 )
 
+/*
+Class to handle paxosmessages coming inn over tcp. When
+a message is received it is checked and sendt out
+on the appropriat channel. 
+*/
+
 var ()
 
 func PaxosHandler() {

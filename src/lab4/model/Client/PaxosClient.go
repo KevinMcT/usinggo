@@ -1,4 +1,4 @@
-package Client
+package main
 
 import (
 	"encoding/gob"
@@ -7,7 +7,13 @@ import (
 	"net"
 )
 
-func PaxosClient() {
+/*
+The paxos client used to communicate with the paxos system.
+User is asked for a ip and a one word message to send over 
+to the system. If the entered ip is not correct/listning the user
+is prompted to enter a new one
+*/
+func main() {
 	ConnectToPaxos()
 }
 

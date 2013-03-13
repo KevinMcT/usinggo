@@ -24,11 +24,11 @@ func init() {
 func Listen(nodeChan chan message.Node, startTime int64, exit chan bool, nLead message.Node) {
 	name1, _ := os.Hostname()
 	addr1, _ := net.LookupHost(name1)
-	UDPAddr1, _ := net.ResolveUDPAddr("udp4", addr1[0]+":1888")
+	UDPAddr1, _ := net.ResolveUDPAddr("udp4", addr1[0]+":1890")
 	if nLead.IP == "" {
-		mcaddr1, _ := net.ResolveUDPAddr("udp4", "239.255.43.99:1888")
+		mcaddr1, _ := net.ResolveUDPAddr("udp4", "239.255.43.99:1890")
 		conn1, _ := net.ListenMulticastUDP("udp4", nil, mcaddr1)
-		conn1.SetDeadline(time.Now().Add(5 * time.Second))
+		conn1.SetDeadline(time.Now().Add(2 * time.Second))
 		data1 := make([]byte, 1024)
 		_, _, err1 := conn1.ReadFromUDP(data1)
 		if err1 != nil {
@@ -57,7 +57,7 @@ func Listen(nodeChan chan message.Node, startTime int64, exit chan bool, nLead m
 
 	//---------------------------------------------------------------------------------
 
-	mcaddr, _ := net.ResolveUDPAddr("udp4", "239.255.43.99:1888")
+	mcaddr, _ := net.ResolveUDPAddr("udp4", "239.255.43.99:1890")
 	conn, _ := net.ListenMulticastUDP("udp4", nil, mcaddr)
 	if fst {
 		nodeChan <- leader

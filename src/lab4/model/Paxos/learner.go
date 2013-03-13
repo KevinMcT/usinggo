@@ -36,6 +36,11 @@ func receivedLearn() {
 	}
 }
 
+/*
+After receiving the first learn we wait for the rest. If
+we have received more then halv of all node learns, we learn
+the value
+*/
 func waitForLearns() {
 	for {
 		<-waitLearnChan

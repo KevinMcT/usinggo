@@ -19,7 +19,7 @@ func init() {
 func Send(ip string, node message.Node) error {
 	var msg interface{}
 	msg = node
-	service := ip + ":2000"
+	service := ip + ":2001"
 	conn, err := net.Dial("tcp", service)
 	if err != nil {
 		return err
@@ -33,10 +33,10 @@ func Send(ip string, node message.Node) error {
 
 func Recieve() (message.Node, error) {
 	var node message.Node
-	service := "0.0.0.0:2000"
+	service := "0.0.0.0:2001"
 	tcpAddr, _ := net.ResolveTCPAddr("tcp", service)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
-	listener.SetDeadline(time.Now().Add(1200 * time.Millisecond))
+	listener.SetDeadline(time.Now().Add(1900 * time.Millisecond))
 	conn, err2 := listener.Accept()
 	var msg interface{}
 	if err != nil {
