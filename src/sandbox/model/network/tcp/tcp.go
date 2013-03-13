@@ -24,6 +24,7 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 		listener, err := net.ListenTCP("tcp", tcpAddr)
 		listener.SetDeadline(time.Now().Add(10 * time.Second))
 		err = nil
+		fmt.Println("Before listen")
 		var inMessage string
 		var machineCount message.MACHINECOUNT
 		var conn *net.TCPConn
@@ -34,6 +35,7 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 				conn.Close()
 				listener.Close()
 				err = nil
+				fmt.Println("Break")
 				break
 			}
 			decoder := gob.NewDecoder(conn)
@@ -41,10 +43,11 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 			switch msg.(type) {
 			case message.LISTRESPONSE:
 				nodeList = msg.(message.LISTRESPONSE).LIST
+				listener.SetDeadline(time.Now().Add(5 * time.Second))
 				nodeChan <- nodeList
 			case message.HARTBEATREQUEST:
 				tcpHartBeatRequest <- msg.(message.HARTBEATREQUEST)
-				listener.SetDeadline(time.Now().Add(800 * time.Millisecond))
+				listener.SetDeadline(time.Now().Add(1000 * time.Millisecond))
 				//fmt.Println(tcpHartBeatRequest)
 			case message.HARTBEATRESPONSE:
 				//fmt.Println(tcpHartBeatResponse)
@@ -52,7 +55,7 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 				listener.SetDeadline(time.Now().Add(60 * time.Second))
 			case message.LEADERREQUEST:
 				leaderRequest = msg.(message.LEADERREQUEST).FROMNODE
-				listener.SetDeadline(time.Now().Add(60 * time.Second))
+				listener.SetDeadline(time.Now().Add(1000 * time.Millisecond))
 				fmt.Println("Request from node:", leaderRequest)
 				tcpLeaderRequestChan <- leaderRequest
 			case message.LEADERRESPONSE:
@@ -63,6 +66,7 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 			case message.Lead:
 			case message.MACHINECOUNT:
 				machineCount = msg.(message.MACHINECOUNT)
+				listener.SetDeadline(time.Now().Add(1000 * time.Millisecond))
 				machineCountChan <- machineCount
 			case message.MESSAGE:
 				inMessage = msg.(message.MESSAGE).MSG
@@ -70,7 +74,9 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 			}
 			//conn.Close()
 		}
+		listener.SetDeadline(time.Now().Add(10 * time.Second))
 		leaderDown <- 1
+		fmt.Println("Sent leader down channel")
 	}
 }
 
