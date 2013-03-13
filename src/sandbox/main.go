@@ -35,10 +35,12 @@ var (
 	leaderDown              = make(chan int, 1)
 	newLeaderChan           = make(chan node.T_Node, 1)
 	askForLeaderChan        = make(chan int, 1)
+	endNodeListChan         = make(chan []node.T_Node, 0)
 	machineList             = make([]machine.T_Machine, 0)
 	machineCountList        = make([]message.MACHINECOUNT, 0)
 	nodeList                = make([]node.T_Node, 0)
 	tcpLeaderList           = make([]node.T_Node, 0)
+	listChanged             []node.T_Node
 	leader                  node.T_Node
 	machineCount            message.MACHINECOUNT
 	inMessage               string
@@ -46,12 +48,12 @@ var (
 )
 
 func main() {
+	go tcp.Listen(tcpNodeChan, tcpLeaderRequestChan, machineCountChan, messageChan, tcpLeaderResponseChan, tcpHartbeatRequestChan, tcpHartbeatResponseChan, leaderDown)
 	fmt.Println("Go")
 	startTime := time.Now().UnixNano()
 	fmt.Println("Start Listen")
 	go udp.Listen(udpListenChan, udpMasterChan)
 	go machine.Machine(udpListenChan, machineChan)
-	go tcp.Listen(tcpNodeChan, tcpLeaderRequestChan, machineCountChan, messageChan, tcpLeaderResponseChan, tcpHartbeatRequestChan, tcpHartbeatResponseChan, leaderDown)
 	fmt.Println("Send broadcast")
 	udp.SendBroadcast(startTime)
 	me = CreateSelf(startTime)
@@ -62,7 +64,7 @@ func main() {
 	for {
 		if leader.IP != "" && leader.IP == me.IP {
 			fmt.Println("Started failure for leader")
-			go failuredetect.Detect(me, leader, newLeaderChan, newNodeChan, suspectedChan, restoreChan, tcpHartbeatRequestChan, tcpHartbeatResponseChan, nodeList)
+			go failuredetect.Detect(me, leader, newLeaderChan, newNodeChan, suspectedChan, restoreChan, tcpHartbeatRequestChan, tcpHartbeatResponseChan, nodeList, endNodeListChan)
 			break
 		}
 		if leader.IP != "" && leader.IP != me.IP {
@@ -83,16 +85,27 @@ func main() {
 					fmt.Println("Suspect on node:", suspectedNode.IP)
 					nodeList[i].SUSPECTED = true
 				}
+				if v.IP != me.IP && v.SUSPECTED != true {
+					fmt.Println("SENDING LIST AFTER SUSPECT")
+					tcp.Send(v.IP, message.LISTRESPONSE{LIST: nodeList})
+				}
 			}
 		case restoreNode := <-restoreChan:
 			for i, v := range nodeList {
 				if v.IP == restoreNode.IP {
 					fmt.Println("Restore on node:", restoreNode.IP)
 					nodeList[i].SUSPECTED = false
+					nodeList[i].LEAD = false
+					newNodeChan <- v
+					tcp.Send(v.IP, message.MACHINECOUNT{I: len(nodeList), NODE: nodeList})
+				}
+				if v.IP != me.IP {
+					tcp.Send(v.IP, message.LISTRESPONSE{LIST: nodeList})
 				}
 			}
 		case <-leaderDown:
 			fmt.Println("Suspected leader down")
+			fmt.Println("----------------------------------------------------------------")
 			for i, v := range nodeList {
 				if v.IP == leader.IP {
 					nodeList[i].SUSPECTED = true
@@ -100,11 +113,10 @@ func main() {
 				}
 			}
 			fmt.Println("Nodelist after leader down: ", nodeList)
-			leader = leaderelection.Elect(nodeList, leaderElectedChan, leaderBlock)
+			leader = leaderelection.Elect(nodeList)
 			for i, v := range nodeList {
-				if v.LEAD == true && v.SUSPECTED == true {
-					fmt.Println("Safety!")
-					nodeList[i].LEAD = false
+				if me.IP == leader.IP && me.IP == v.IP {
+					nodeList[i].LEAD = true
 				}
 			}
 			fmt.Println("Leader elect in main after break: ", leader)
@@ -117,29 +129,28 @@ func main() {
 					go udp.Listen(udpListenChan, udpMasterChan)
 					fmt.Println("UDP operational!")
 					newLeaderChan <- leader
-					for _, v := range nodeList {
-						go tcp.Send(v.IP, message.MACHINECOUNT{I: len(nodeList), NODE: nodeList})
-					}
+					endNodeListChan <- nodeList
 					fmt.Println("After new leader is sent to FD")
 					break
 				}
 				if leader.IP != "" && leader.IP != me.IP {
 					fmt.Println("I should ask for leader here...")
+					newLeaderChan <- leader
+					endNodeListChan <- nodeList
 					askForLeaderChan <- 1
 					break
 				}
-				time.Sleep(5 * time.Millisecond)
+				time.Sleep(2 * time.Millisecond)
 			}
 
 		case <-timeout:
 
-		case listChanged := <-tcpNodeChan:
-			fmt.Println("list changed")
-			nodeList = listChanged
-			fmt.Println(nodeList)
+		case listChanged = <-tcpNodeChan:
+			if leader.IP != me.IP {
+				nodeList = listChanged
+				fmt.Println("Recieved list:", nodeList)
+			}
 		}
-
-		time.Sleep(1 * time.Millisecond)
 	}
 
 }
@@ -148,10 +159,13 @@ func leaderResponse() {
 	for {
 		fmt.Println("Leader response")
 		leaderRequestMsg := <-tcpLeaderRequestChan
-		leader = leaderelection.Elect(nodeList, leaderElectedChan, leaderBlock)
-		fmt.Println("Sending leader response")
+		if leader.IP == "" {
+			leader = leaderelection.Elect(nodeList)
+		}
+		fmt.Println("Sending leader response", leader)
 		tcp.Send(leaderRequestMsg.IP, message.LEADERRESPONSE{NODE: leader})
 		time.Sleep(10 * time.Millisecond)
+		fmt.Println("SENDING LIST TO REQUESTER:", leaderRequestMsg.IP)
 		tcp.Send(leaderRequestMsg.IP, message.LISTRESPONSE{LIST: nodeList})
 		me.LEAD = true
 		for i, v := range nodeList {
@@ -173,8 +187,8 @@ func fillList() {
 			for _, v := range nodeList {
 				fmt.Println(v)
 				if v.IP != me.IP {
-					err := tcp.Send(v.IP, message.LISTRESPONSE{LIST: nodeList})
-					fmt.Println(err)
+					fmt.Println("SENDING LIST IN fillLIST")
+					go tcp.Send(v.IP, message.LISTRESPONSE{LIST: nodeList})
 				}
 			}
 		}
@@ -188,38 +202,38 @@ func askForLeader() {
 	for {
 		timeout := make(chan bool, 1)
 		go func() {
-			time.Sleep(5 * time.Millisecond)
+			time.Sleep(50 * time.Millisecond)
 			timeout <- true
 		}()
 		select {
 		case <-askForLeaderChan:
 			fmt.Println("TEST")
 			var lead node.T_Node
-			leader = leaderelection.Elect(nodeList, leaderElectedChan, leaderBlock)
-			fmt.Println("New leader after leader crach: ", leader)
-			newLeaderChan <- leader
-			tcp.Send(leader.IP, message.LEADERREQUEST{TONODE: leader, FROMNODE: node.CreateNode(me)})
-			lead = <-tcpLeaderResponseChan
-			fmt.Println("Confirmed leader: ", lead.IP)
-			fmt.Println("Leaders list:", nodeList)
+			if leader.IP != me.IP {
+				go tcp.Send(leader.IP, message.LEADERREQUEST{TONODE: leader, FROMNODE: node.CreateNode(me)})
+				lead = <-tcpLeaderResponseChan
+				//newLeaderChan <- lead
+				fmt.Println("Confirmed leader: ", lead.IP)
+			}
 		case <-timeout:
 			var mac message.MACHINECOUNT
 			var lead node.T_Node
-			timeout = make(chan bool, 1)
+			timeout1 := make(chan bool, 1)
 			go func() {
 				time.Sleep(5 * time.Millisecond)
-				timeout <- true
+				timeout1 <- true
 			}()
 			select {
 			case mac = <-machineCountChan:
-				leader = leaderelection.Elect(mac.NODE, leaderElectedChan, leaderBlock)
-				fmt.Println("Leader: ", leader)
-				tcp.Send(leader.IP, message.LEADERREQUEST{TONODE: leader, FROMNODE: node.CreateNode(me)})
-				lead = <-tcpLeaderResponseChan
-				fmt.Println("Confirmed leader: ", lead.IP)
-				fmt.Println("Leaders list:", nodeList)
-				go failuredetect.Detect(me, leader, newLeaderChan, newNodeChan, suspectedChan, restoreChan, tcpHartbeatRequestChan, tcpHartbeatResponseChan, nodeList)
-			case <-timeout:
+				if leader.IP != me.IP {
+					leader = leaderelection.Elect(mac.NODE)
+					fmt.Println("Leader: ", leader)
+					go tcp.Send(leader.IP, message.LEADERREQUEST{TONODE: leader, FROMNODE: node.CreateNode(me)})
+					lead = <-tcpLeaderResponseChan
+					fmt.Println("Confirmed leader: ", lead.IP)
+					go failuredetect.Detect(me, leader, newLeaderChan, newNodeChan, suspectedChan, restoreChan, tcpHartbeatRequestChan, tcpHartbeatResponseChan, nodeList, endNodeListChan)
+				}
+			case <-timeout1:
 			}
 		}
 	}
@@ -233,6 +247,7 @@ func AppendIfMissing(slice []machine.T_Machine, i machine.T_Machine) ([]machine.
 				if i.IP == v.IP {
 					nodeList[j].SUSPECTED = false
 					nodeList[j].TIME = i.TIME
+					restoreChan <- nodeList[j]
 				}
 			}
 			return slice, false

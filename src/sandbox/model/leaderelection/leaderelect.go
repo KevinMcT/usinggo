@@ -7,12 +7,10 @@ import (
 
 var ()
 
-func Elect(leadElect []node.T_Node, elected chan node.T_Node, block chan int) node.T_Node {
+func Elect(leadElect []node.T_Node) node.T_Node {
 	list := leadElect
 	old := findOldest(list)
 	return old
-	//	elected <- old
-	//	block <- 1
 }
 
 func findOldest(list []node.T_Node) node.T_Node {
@@ -20,16 +18,18 @@ func findOldest(list []node.T_Node) node.T_Node {
 	for i, v := range list {
 		if node.IP == "" && v.SUSPECTED == false {
 			node = v
-		} else {
+			node.LEAD = true
+		} else if node.IP != "" && v.SUSPECTED == false {
 			if v.LEAD == true && v.SUSPECTED == true {
 				list[i].LEAD = false
 			}
 			if v.TIME < node.TIME && v.SUSPECTED == false {
-				fmt.Println(list[i])
 				list[i].LEAD = true
 				node = list[i]
 			}
 		}
 	}
+	fmt.Println("List: ", list)
+	fmt.Println("Elected Node: ", node)
 	return node
 }
