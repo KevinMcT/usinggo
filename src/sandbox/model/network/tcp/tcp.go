@@ -24,7 +24,6 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 		listener, err := net.ListenTCP("tcp", tcpAddr)
 		listener.SetDeadline(time.Now().Add(10 * time.Second))
 		err = nil
-		fmt.Println("Before listen")
 		var inMessage string
 		var machineCount message.MACHINECOUNT
 		var conn *net.TCPConn
@@ -35,7 +34,6 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 				conn.Close()
 				listener.Close()
 				err = nil
-				fmt.Println("Break")
 				break
 			}
 			decoder := gob.NewDecoder(conn)
@@ -54,6 +52,7 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 				listener.SetDeadline(time.Now().Add(60 * time.Second))
 			case message.LEADERREQUEST:
 				leaderRequest = msg.(message.LEADERREQUEST).FROMNODE
+				listener.SetDeadline(time.Now().Add(60 * time.Second))
 				fmt.Println("Request from node:", leaderRequest)
 				tcpLeaderRequestChan <- leaderRequest
 			case message.LEADERRESPONSE:
@@ -64,7 +63,6 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 			case message.Lead:
 			case message.MACHINECOUNT:
 				machineCount = msg.(message.MACHINECOUNT)
-				fmt.Println("MachineCount: ", machineCount)
 				machineCountChan <- machineCount
 			case message.MESSAGE:
 				inMessage = msg.(message.MESSAGE).MSG

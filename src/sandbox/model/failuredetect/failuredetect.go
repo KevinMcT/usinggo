@@ -1,7 +1,7 @@
 package failuredetect
 
 import (
-	//"fmt"
+	"fmt"
 	"sandbox/controller/machine"
 	"sandbox/controller/node"
 	"sandbox/model/network/message"
@@ -17,6 +17,7 @@ func Detect(me machine.T_Machine, lead node.T_Node, newLead chan node.T_Node, ne
 	var ticker = time.NewTicker(200 * time.Millisecond)
 	var nodeList = startList
 	var newNode node.T_Node
+	var newL node.T_Node
 	for {
 		timeout := make(chan bool, 1)
 		go func() {
@@ -27,7 +28,9 @@ func Detect(me machine.T_Machine, lead node.T_Node, newLead chan node.T_Node, ne
 		case newNode = <-newNodeChan:
 			nodeList = AppendIfMissing(nodeList, newNode)
 		case <-timeout:
-		case newL := <-newLead:
+		case newL = <-newLead:
+			fmt.Println("New leader detected in FD:", newL)
+			suspectedChan <- lead
 			lead = newL
 		}
 		time.Sleep(1 * time.Millisecond)
@@ -51,9 +54,17 @@ func Detect(me machine.T_Machine, lead node.T_Node, newLead chan node.T_Node, ne
 			}
 		}
 		if me.IP != lead.IP {
-			<-tcpRequestChan
-			tcp.Send(lead.IP, message.HARTBEATRESPONSE{IP: me.IP})
-			time.Sleep(1 * time.Millisecond)
+			timeout := make(chan bool, 1)
+			go func() {
+				time.Sleep(5 * time.Millisecond)
+				timeout <- true
+			}()
+			select {
+			case <-tcpRequestChan:
+				tcp.Send(lead.IP, message.HARTBEATRESPONSE{IP: me.IP})
+				time.Sleep(1 * time.Millisecond)
+			case <-timeout:
+			}
 		}
 		<-ticker.C
 	}

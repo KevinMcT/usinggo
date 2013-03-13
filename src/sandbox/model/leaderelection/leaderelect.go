@@ -1,6 +1,7 @@
 package leaderelection
 
 import (
+	"fmt"
 	"sandbox/controller/node"
 )
 
@@ -24,6 +25,7 @@ func findOldest(list []node.T_Node) node.T_Node {
 				list[i].LEAD = false
 			}
 			if v.TIME < node.TIME && v.SUSPECTED == false {
+				fmt.Println(list[i])
 				list[i].LEAD = true
 				node = list[i]
 			}
