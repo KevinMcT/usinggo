@@ -13,20 +13,22 @@ var (
 	delay int
 )
 
-func Detect(me machine.T_Machine, lead node.T_Node, newNodeChan chan node.T_Node, suspectedChan chan node.T_Node, restoreChan chan node.T_Node, tcpRequestChan chan message.HARTBEATREQUEST, tcpResponseChan chan message.HARTBEATRESPONSE, startList []node.T_Node) {
-	var ticker = time.NewTicker(500 * time.Millisecond)
+func Detect(me machine.T_Machine, lead node.T_Node, newLead chan node.T_Node, newNodeChan chan node.T_Node, suspectedChan chan node.T_Node, restoreChan chan node.T_Node, tcpRequestChan chan message.HARTBEATREQUEST, tcpResponseChan chan message.HARTBEATRESPONSE, startList []node.T_Node) {
+	var ticker = time.NewTicker(200 * time.Millisecond)
 	var nodeList = startList
 	var newNode node.T_Node
 	for {
 		timeout := make(chan bool, 1)
 		go func() {
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(5 * time.Millisecond)
 			timeout <- true
 		}()
 		select {
 		case newNode = <-newNodeChan:
 			nodeList = AppendIfMissing(nodeList, newNode)
 		case <-timeout:
+		case newL := <-newLead:
+			lead = newL
 		}
 		time.Sleep(1 * time.Millisecond)
 		if me.IP == lead.IP {

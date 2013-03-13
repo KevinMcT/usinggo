@@ -1,7 +1,6 @@
 package leaderelection
 
 import (
-	"fmt"
 	"sandbox/controller/node"
 )
 
@@ -18,12 +17,13 @@ func Elect(leadElect []node.T_Node, elected chan node.T_Node, block chan int) no
 func findOldest(list []node.T_Node) node.T_Node {
 	var node node.T_Node
 	for i, v := range list {
-		if node.IP == "" {
+		if node.IP == "" && v.SUSPECTED == false {
 			node = v
-			node.LEAD = true
 		} else {
+			if v.LEAD == true && v.SUSPECTED == true {
+				list[i].LEAD = false
+			}
 			if v.TIME < node.TIME && v.SUSPECTED == false {
-				fmt.Println("Should find leader")
 				list[i].LEAD = true
 				node = list[i]
 			}

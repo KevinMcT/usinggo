@@ -15,26 +15,27 @@ var (
 
 func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, machineCountChan chan message.MACHINECOUNT, messageChan chan string, tcpLeaderResponseChan chan node.T_Node, tcpHartBeatRequest chan message.HARTBEATREQUEST, tcpHartBeatResponse chan message.HARTBEATRESPONSE, leaderDown chan int) {
 	service := "0.0.0.0:2000"
-	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
-	listener, err := net.ListenTCP("tcp", tcpAddr)
+	tcpAddr, _ := net.ResolveTCPAddr("tcp", service)
 	var msg interface{}
 	var nodeList []node.T_Node
 	var leaderResponse node.T_Node
 	var leaderRequest node.T_Node
-	for !restart {
-		restart = false
+	for {
+		listener, err := net.ListenTCP("tcp", tcpAddr)
+		listener.SetDeadline(time.Now().Add(10 * time.Second))
+		err = nil
+		fmt.Println("Before listen")
 		var inMessage string
 		var machineCount message.MACHINECOUNT
 		var conn *net.TCPConn
 		for {
 			conn, err = listener.AcceptTCP()
 			if err != nil {
-				fmt.Println("WHOAH")
+				fmt.Println("Error in TCP", err)
 				conn.Close()
 				listener.Close()
-				leaderDown <- 1
 				err = nil
-				restart = true
+				fmt.Println("Break")
 				break
 			}
 			decoder := gob.NewDecoder(conn)
@@ -45,16 +46,19 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 				nodeChan <- nodeList
 			case message.HARTBEATREQUEST:
 				tcpHartBeatRequest <- msg.(message.HARTBEATREQUEST)
-				listener.SetDeadline(time.Now().Add(700 * time.Millisecond))
+				listener.SetDeadline(time.Now().Add(800 * time.Millisecond))
+				//fmt.Println(tcpHartBeatRequest)
 			case message.HARTBEATRESPONSE:
+				//fmt.Println(tcpHartBeatResponse)
 				tcpHartBeatResponse <- msg.(message.HARTBEATRESPONSE)
+				listener.SetDeadline(time.Now().Add(60 * time.Second))
 			case message.LEADERREQUEST:
 				leaderRequest = msg.(message.LEADERREQUEST).FROMNODE
-				//fmt.Println("Request from node:", leaderRequest)
+				fmt.Println("Request from node:", leaderRequest)
 				tcpLeaderRequestChan <- leaderRequest
 			case message.LEADERRESPONSE:
 				leaderResponse = msg.(message.LEADERRESPONSE).NODE
-				//fmt.Println("Response from leader:", leaderResponse)
+				fmt.Println("Response from leader:", leaderResponse)
 				tcpLeaderResponseChan <- leaderResponse
 			case message.Node:
 			case message.Lead:
@@ -66,8 +70,9 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 				inMessage = msg.(message.MESSAGE).MSG
 				messageChan <- inMessage
 			}
-			conn.Close()
+			//conn.Close()
 		}
+		leaderDown <- 1
 	}
 }
 
