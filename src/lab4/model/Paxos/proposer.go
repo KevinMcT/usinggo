@@ -108,7 +108,6 @@ func waitForPromise() {
 		waiting = true
 		time.Sleep(2 * time.Second)
 		waiting = false
-		fmt.Println(promiseList)
 		checkPromises()
 	}
 }
