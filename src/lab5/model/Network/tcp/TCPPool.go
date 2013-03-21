@@ -2,7 +2,7 @@ package tcp
 
 import (
 	"fmt"
-	//"lab5/Utils"
+	"lab5/Utils"
 	"net"
 )
 
@@ -26,16 +26,7 @@ If it exists we return this connection. If there does not exist a connection
 to the address we construct a new connection to the address and return this.
 */
 func Dial(url string) net.Conn {
-	//conn := Utils.SearchForIP(url, instantiated.freeConnections)
-	var conn net.Conn
-	for _, v := range instantiated.freeConnections {
-		if v.RemoteAddr().String() == url {
-			//fmt.Println("Found a valid connection")
-			conn = v.(net.Conn)
-			return conn
-		}
-	}
-
+	conn := Utils.SearchForIP(url, instantiated.freeConnections)
 	if conn == nil {
 		conn, err := net.Dial("tcp", url)
 		if err != nil {
@@ -54,15 +45,10 @@ Method to "close" the connection. We append the connection to the freeConnection
 list and return nil.
 */
 func Close(conn net.Conn) net.Conn {
-	var connExists = false
-	for _, v := range instantiated.freeConnections {
-		if v.RemoteAddr().String() == conn.RemoteAddr().String() {
-			connExists = true
-		}
-	}
-	//existConn := Utils.SearchForIP(conn.RemoteAddr().String(), instantiated.freeConnections)
+	existConn := Utils.SearchForIP(conn.RemoteAddr().String(), instantiated.freeConnections)
+
 	//If the connection is allready in the list we don`t add it again.
-	if connExists == false {
+	if existConn == nil {
 		instantiated.freeConnections = append(instantiated.freeConnections, conn)
 	}
 	return nil
