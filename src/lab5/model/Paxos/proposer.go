@@ -3,10 +3,9 @@ package Paxos
 import (
 	"encoding/gob"
 	"fmt"
-	//lab4/Utils"
-	"lab4/model/Network/message"
-	"lab4/model/RoundVar"
-	"net"
+	"lab5/model/Network/message"
+	"lab5/model/Network/tcp"
+	"lab5/model/RoundVar"
 	"time"
 )
 
@@ -34,7 +33,7 @@ func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan s
 	for {
 		cv := <-ac
 		clientValue = cv
-		fmt.Println("Received value ", clientValue)
+		//fmt.Println("Received value ", clientValue)
 		round = round + 1
 		sendPrepare()
 	}
@@ -44,14 +43,15 @@ func sendPrepare() {
 	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
 		sendAddress := v.IP + ":1338"
-		sendConn, err := net.Dial("tcp", sendAddress)
-		if err == nil {
+		sendConn := tcp.Dial(sendAddress)
+		if sendConn != nil {
 			encoder := gob.NewEncoder(sendConn)
 			var prepare = message.Prepare{ROUND: round}
 			var msg interface{}
 			msg = prepare
 			encoder.Encode(&msg)
-			sendConn.Close()
+			//fmt.Println("Sending prepare")
+			tcp.Close(sendConn)
 		} else {
 			fmt.Println("Cannot send prepare to node")
 		}
@@ -62,14 +62,18 @@ func sendAccept() {
 	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
 		address := v.IP + ":1338"
-		conn, err := net.Dial("tcp", address)
-		if err == nil {
+		conn := tcp.Dial(address)
+		if conn != nil {
 			encoder := gob.NewEncoder(conn)
 			var accept = message.Accept{ROUND: round, VALUE: clientValue}
 			var msg interface{}
 			msg = accept
-			encoder.Encode(&msg)
-			conn.Close()
+			var err = encoder.Encode(&msg)
+			if err != nil {
+				fmt.Println("Encoding failed!!: ", err)
+			}
+			//fmt.Println("Sending accept ", conn.RemoteAddr().String())
+			tcp.Close(conn)
 		} else {
 			fmt.Println("Cannot send accept to node")
 		}

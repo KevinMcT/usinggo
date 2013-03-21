@@ -3,8 +3,8 @@ package Paxos
 import (
 	//"encoding/gob"
 	"fmt"
-	"lab4/model/Network/message"
-	"lab4/model/RoundVar"
+	"lab5/model/Network/message"
+	"lab5/model/RoundVar"
 	//"net"
 	"strings"
 	"time"

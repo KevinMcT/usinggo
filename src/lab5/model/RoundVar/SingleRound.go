@@ -1,7 +1,7 @@
 package RoundVar
 
 import (
-	"lab4/model/Network/message"
+	"lab5/model/Network/message"
 )
 
 type roundSingle struct {

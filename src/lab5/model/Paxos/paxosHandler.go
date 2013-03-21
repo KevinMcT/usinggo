@@ -3,8 +3,8 @@ package Paxos
 import (
 	"encoding/gob"
 	"fmt"
-	"lab4/Utils"
-	"lab4/model/Network/message"
+	"lab5/Utils"
+	"lab5/model/Network/message"
 	"net"
 	"strings"
 )
@@ -29,32 +29,45 @@ func HandlePaxosMessages() {
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	for {
 		Utils.CheckError(err)
-		conn, err := listener.Accept()
+		//fmt.Println("Waiting again....")
+		conn, _ := listener.Accept()
+		go holdConnection(conn)
 
+	}
+}
+
+func holdConnection(conn net.Conn) {
+	var connectionOK = true
+	for connectionOK == true {
+		//fmt.Println("Received something!")
 		decoder := gob.NewDecoder(conn)
 		var msg interface{}
-		err = decoder.Decode(&msg)
+		err := decoder.Decode(&msg)
 		if err != nil {
-			fmt.Println(err)
+			connectionOK = false
 		}
-		conn.Close()
 		if msg != nil {
 			remote := conn.RemoteAddr().String()
 			remoteSplit := strings.Split(remote, ":")
 			switch msg.(type) {
 			case message.Prepare:
+				//fmt.Println("Received prepare")
 				var mes = message.Wrapper{Ip: remoteSplit[0], Message: msg.(message.Prepare)}
 				message.PrepareChan <- mes
 			case message.Promise:
+				//fmt.Println("Received promise")
 				var mes = message.Wrapper{Ip: remoteSplit[0], Message: msg.(message.Promise)}
 				message.PromiseChan <- mes
 			case message.Accept:
+				//fmt.Println("Received accept")
 				var mes = message.Wrapper{Ip: remoteSplit[0], Message: msg.(message.Accept)}
 				message.AcceptChan <- mes
 			case message.Learn:
+				//fmt.Println("Received learn")
 				var mes = message.Wrapper{Ip: remoteSplit[0], Message: msg.(message.Learn)}
 				message.LearnChan <- mes
 			}
 		}
 	}
+	fmt.Println("Connection died, letting it go")
 }

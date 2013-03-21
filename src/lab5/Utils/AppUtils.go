@@ -14,9 +14,12 @@ func CheckError(err error) {
 }
 
 func SearchForIP(IP string, array []net.Conn) net.Conn {
+	fmt.Println("IP:", IP)
 	for _, v := range array {
+		//fmt.Println("connIP:", v.RemoteAddr().String())
 		if v.RemoteAddr().String() == IP {
-			return v
+			//fmt.Println("Found a valid connection in the")
+			return v.(net.Conn)
 		}
 	}
 	return nil

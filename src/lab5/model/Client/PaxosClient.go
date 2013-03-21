@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/gob"
 	"fmt"
-	"lab4/model/Network/message"
+	"lab5/model/Network/message"
 	"net"
 )
 

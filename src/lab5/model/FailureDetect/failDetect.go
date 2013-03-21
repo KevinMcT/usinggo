@@ -2,9 +2,9 @@ package FailureDetect
 
 import (
 	"fmt"
-	"lab4/model/Network/message"
-	"lab4/model/Network/tcp"
-	"lab4/model/RoundVar"
+	"lab5/model/Network/message"
+	"lab5/model/Network/tcp"
+	"lab5/model/RoundVar"
 	"time"
 )
 
