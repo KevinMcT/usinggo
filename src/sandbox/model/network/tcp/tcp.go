@@ -43,6 +43,7 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 			switch msg.(type) {
 			case message.LISTRESPONSE:
 				nodeList = msg.(message.LISTRESPONSE).LIST
+				fmt.Println(nodeList)
 				listener.SetDeadline(time.Now().Add(5 * time.Second))
 				nodeChan <- nodeList
 			case message.HARTBEATREQUEST:
@@ -56,11 +57,12 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 			case message.LEADERREQUEST:
 				leaderRequest = msg.(message.LEADERREQUEST).FROMNODE
 				listener.SetDeadline(time.Now().Add(1000 * time.Millisecond))
-				fmt.Println("Request from node:", leaderRequest)
+				//fmt.Println("Request from node:", leaderRequest)
 				tcpLeaderRequestChan <- leaderRequest
 			case message.LEADERRESPONSE:
 				leaderResponse = msg.(message.LEADERRESPONSE).NODE
-				fmt.Println("Response from leader:", leaderResponse)
+				listener.SetDeadline(time.Now().Add(1000 * time.Millisecond))
+				//fmt.Println("Response from leader:", leaderResponse)
 				tcpLeaderResponseChan <- leaderResponse
 			case message.Node:
 			case message.Lead:

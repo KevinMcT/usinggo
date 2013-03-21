@@ -24,7 +24,7 @@ func Detect(me machine.T_Machine, lead node.T_Node, newLead chan node.T_Node, ne
 			for i, v := range nodeList {
 				if v.IP != me.IP && v.LEAD != true {
 					err := tcp.Send(v.IP, message.HARTBEATREQUEST{IP: lead.IP})
-					fmt.Println("SENT REQUEST TO", v.IP)
+					//fmt.Println("SENT REQUEST TO", v.IP)
 					if err != nil && nodeList[i].SUSPECTED != true {
 						nodeList[i].SUSPECTED = true
 						suspectedChan <- nodeList[i]
@@ -45,7 +45,7 @@ func Detect(me machine.T_Machine, lead node.T_Node, newLead chan node.T_Node, ne
 			select {
 			case <-tcpRequestChan:
 				tcp.Send(lead.IP, message.HARTBEATRESPONSE{IP: me.IP})
-				fmt.Println("SENT RESPONSE TO", lead.IP)
+				//fmt.Println("SENT RESPONSE TO", lead.IP)
 				time.Sleep(1 * time.Millisecond)
 			case <-timeout:
 			}
