@@ -13,7 +13,7 @@ var (
 )
 
 func Detect(me node.T_Node, lead node.T_Node, newLead chan node.T_Node, newNodeChan chan node.T_Node, suspectedChan chan node.T_Node, restoreChan chan node.T_Node, tcpRequestChan chan msg.HARTBEATREQUEST, tcpResponseChan chan msg.HARTBEATRESPONSE, startList []node.T_Node, endList chan []node.T_Node) {
-	var ticker = time.NewTicker(50 * time.Millisecond)
+	var ticker = time.NewTicker(200 * time.Millisecond)
 	var nodeList = startList
 	var newNode node.T_Node
 	var newL node.T_Node
@@ -23,8 +23,8 @@ func Detect(me node.T_Node, lead node.T_Node, newLead chan node.T_Node, newNodeC
 			for i, v := range nodeList {
 				if v.IP != me.IP && v.LEAD != true {
 					err := tcp.Send(v.IP, msg.HARTBEATREQUEST{IP: lead.IP})
-					fmt.Println("Sent msg to:", v.IP)
-					//time.Sleep(5 * time.Millisecond)
+					//fmt.Println("Sent msg to:", v.IP)
+					time.Sleep(5 * time.Millisecond)
 					if err != nil && nodeList[i].SUSPECTED != true {
 						fmt.Println("FD: suspect...")
 						nodeList[i].SUSPECTED = true
@@ -47,8 +47,8 @@ func Detect(me node.T_Node, lead node.T_Node, newLead chan node.T_Node, newNodeC
 			select {
 			case <-tcpRequestChan:
 				tcp.Send(lead.IP, msg.HARTBEATRESPONSE{IP: me.IP})
-				fmt.Println("Sent response to: ", lead.IP)
-				//time.Sleep(5 * time.Millisecond)
+				//fmt.Println("Sent response to: ", lead.IP)
+				time.Sleep(5 * time.Millisecond)
 			case <-timeout:
 			}
 		}
