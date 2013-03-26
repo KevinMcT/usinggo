@@ -13,7 +13,7 @@ var (
 )
 
 func Detect(me node.T_Node, lead node.T_Node, newLead chan node.T_Node, newNodeChan chan node.T_Node, suspectedChan chan node.T_Node, restoreChan chan node.T_Node, tcpRequestChan chan msg.HARTBEATREQUEST, tcpResponseChan chan msg.HARTBEATRESPONSE, startList []node.T_Node, endList chan []node.T_Node) {
-	var ticker = time.NewTicker(200 * time.Millisecond)
+	var ticker = time.NewTicker(50 * time.Millisecond)
 	var nodeList = startList
 	var newNode node.T_Node
 	var newL node.T_Node
