@@ -5,10 +5,11 @@ import (
 )
 
 var (
-	LearnChan   chan Wrapper
-	AcceptChan  chan Wrapper
-	PrepareChan chan Wrapper
-	PromiseChan chan Wrapper
+	LearnChan       chan Wrapper
+	AcceptChan      chan Wrapper
+	PrepareChan     chan Wrapper
+	PromiseChan     chan Wrapper
+	SendPrepareChan chan bool
 )
 
 func init() {
@@ -20,6 +21,7 @@ func init() {
 	AcceptChan = make(chan Wrapper, 10)
 	PrepareChan = make(chan Wrapper, 10)
 	PromiseChan = make(chan Wrapper, 10)
+	SendPrepareChan = make(chan bool, 10)
 }
 
 type Wrapper struct {
@@ -38,8 +40,9 @@ type Promise struct {
 }
 
 type Accept struct {
-	ROUND int
-	VALUE string
+	ROUND     int
+	MSGNUMBER int
+	VALUE     string
 }
 
 type Learn struct {

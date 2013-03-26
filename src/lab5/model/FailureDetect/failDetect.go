@@ -124,5 +124,8 @@ func fillNodelist(nc chan message.Node, self message.Node) {
 		fmt.Println("added: ", node)
 		nodelist = append(nodelist, node)
 		RoundVar.GetRound().List = nodelist
+		if len(nodelist) > 2 && leader.IP == self.IP {
+			message.SendPrepareChan <- true
+		}
 	}
 }
