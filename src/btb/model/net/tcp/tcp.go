@@ -46,7 +46,7 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 				nodeChan <- nodeList
 			case msg.HARTBEATREQUEST:
 				tcpHartBeatRequest <- message.(msg.HARTBEATREQUEST)
-				listener.SetDeadline(time.Now().Add(250 * time.Millisecond))
+				listener.SetDeadline(time.Now().Add(500 * time.Millisecond))
 			case msg.HARTBEATRESPONSE:
 				tcpHartBeatResponse <- message.(msg.HARTBEATRESPONSE)
 				//listener.SetDeadline(time.Now().Add(60 * time.Second))
