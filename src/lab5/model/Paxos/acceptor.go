@@ -37,7 +37,6 @@ func receivedPrepare() {
 func receivedAccept() {
 	for {
 		value := <-message.AcceptChan
-		fmt.Println("received accept")
 		acceptMsg := value.Message.(message.Accept)
 		if acceptMsg.ROUND == promisedRound {
 			acceptedValue = acceptMsg.VALUE
@@ -59,7 +58,7 @@ func sendLearn(address string) {
 			var msg interface{}
 			msg = learn
 			encoder.Encode(&msg)
-			fmt.Println("Sending learn")
+			//fmt.Println("Sending learn")
 			tcp.Close(sendConn)
 		} else {
 			fmt.Println("Cannot send learn to node")

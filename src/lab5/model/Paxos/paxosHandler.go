@@ -56,7 +56,6 @@ func holdConnection(conn net.Conn) {
 				message.PromiseChan <- mes
 			case message.Accept:
 				var mes = message.Wrapper{Ip: remoteSplit[0], Message: msg.(message.Accept)}
-				fmt.Println(msg.(message.Accept))
 				message.AcceptChan <- mes
 			case message.Learn:
 				var mes = message.Wrapper{Ip: remoteSplit[0], Message: msg.(message.Learn)}
@@ -65,4 +64,5 @@ func holdConnection(conn net.Conn) {
 		}
 	}
 	fmt.Println("Connection died, letting it go")
+	fmt.Println(conn.RemoteAddr().String())
 }

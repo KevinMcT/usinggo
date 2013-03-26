@@ -137,34 +137,8 @@ func ClientConnection() {
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	for {
 		Utils.CheckError(err)
-		conn, err := listener.Accept()
-		decoder := gob.NewDecoder(conn)
-		var msg interface{}
-		err = decoder.Decode(&msg)
-		if err != nil {
-			fmt.Println(err)
-		}
-		conn.Close()
-		if msg != nil {
-			var clientMsg message.ClientRequestMessage
-			clientMsg = msg.(message.ClientRequestMessage)
-			if leader.IP == selfnode.IP {
-				acceptorChan <- clientMsg.Content
-			} else {
-				fmt.Println("Im not leader, sending it on!")
-				leaderService := leader.IP + ":1337"
-				fmt.Println(leaderService)
-				leaderCon, err := net.Dial("tcp", leaderService)
-				if err != nil {
-					fmt.Println(err)
-				} else {
-					encoder := gob.NewEncoder(leaderCon)
-					msg = clientMsg
-					encoder.Encode(&msg)
-				}
-				leaderCon.Close()
-			}
-		}
+		conn, _ := listener.Accept()
+		go holdConnection(conn)
 	}
 }
 
@@ -186,4 +160,37 @@ func contains(s []message.Node, e bool) bool {
 		}
 	}
 	return false
+}
+
+func holdConnection(conn net.Conn) {
+	var connectionOK = true
+	for connectionOK == true {
+		decoder := gob.NewDecoder(conn)
+		var msg interface{}
+		var err = decoder.Decode(&msg)
+		if err != nil {
+			connectionOK = false
+		}
+		if msg != nil {
+			var clientMsg message.ClientRequestMessage
+			clientMsg = msg.(message.ClientRequestMessage)
+			if leader.IP == selfnode.IP {
+				acceptorChan <- clientMsg.Content
+			} else {
+				fmt.Println("Im not leader, sending it on!")
+				leaderService := leader.IP + ":1337"
+				fmt.Println(leaderService)
+				leaderCon, err := net.Dial("tcp", leaderService)
+				if err != nil {
+					fmt.Println(err)
+				} else {
+					encoder := gob.NewEncoder(leaderCon)
+					msg = clientMsg
+					encoder.Encode(&msg)
+				}
+				leaderCon.Close()
+			}
+		}
+	}
+	fmt.Println("Client closed connection, no more to share")
 }

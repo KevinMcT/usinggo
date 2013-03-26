@@ -43,8 +43,10 @@ func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan s
 	quorumPromise = false
 	go receviedPromise()
 	go waitForPromise()
-	go handleMessages()
-	go sendPrepare()
+	if led.IP == me.IP {
+		go handleMessages()
+		go sendPrepare()
+	}
 	round = round + 1
 	for {
 		cv := <-ac
@@ -56,12 +58,16 @@ func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan s
 //paxos to be processed.
 func handleMessages() {
 	for {
-		fmt.Println("Waiting")
-		time.Sleep(5 * time.Second)
+		fmt.Println("going to sleep")
+		time.Sleep(2 * time.Second)
+		fmt.Println("Done sleeping!")
 		var msg = waitingMessages.messages.Pop()
+		fmt.Println("Popped a value mr!")
 		msgNumber = msgNumber + 1
 		clientValue = msg
+		fmt.Println("Going into system: ", clientValue)
 		if quorumPromise == true {
+			fmt.Println("sending..")
 			sendAccept()
 		}
 	}
