@@ -20,8 +20,8 @@ var (
 	newNodes      = make(chan message.Node, 10)
 	newNodesPaxos = make(chan message.Node, 10)
 
-	acceptorChan = make(chan string, 10)
-	proposerChan = make(chan message.Learn, 10)
+	acceptorChan = make(chan string, 20)
+	proposerChan = make(chan message.Learn, 20)
 	nodeList     = make([]message.Node, 0)
 	leadElect    = make(chan []message.Node, 10)
 	elected      = make(chan message.Node, 1)

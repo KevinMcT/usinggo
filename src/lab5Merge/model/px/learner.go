@@ -1,11 +1,11 @@
-package Paxos
+package px
 
 import (
 	"encoding/gob"
 	"fmt"
-	"lab5/model/Network/message"
-	"lab5/model/Network/tcp"
-	"lab5/model/RoundVar"
+	"lab5Merge/model/RoundVar"
+	"lab5Merge/model/net/msg"
+	"lab5Merge/model/net/tcp"
 	//"net"
 	"strings"
 	"time"
@@ -14,7 +14,7 @@ import (
 var (
 	learns        int
 	value         string
-	learnList     = make([]message.Learn, 0)
+	learnList     = make([]msg.Learn, 0)
 	r             int
 	msgNr         int
 	waitLearnChan = make(chan string, 1)
@@ -30,11 +30,11 @@ func Learner() {
 
 func receivedLearn() {
 	for {
-		learn := <-message.LearnChan
+		learn := <-msg.LearnChan
 		if waiting == false {
 			waitLearnChan <- "wait"
 		}
-		learnMsg := learn.Message.(message.Learn)
+		learnMsg := learn.Message.(msg.Learn)
 		learnList = append(learnList, learnMsg)
 	}
 }
@@ -75,10 +75,10 @@ func waitForLearns() {
 				sendConn := tcp.Dial(sendAddress)
 				if sendConn != nil {
 					encoder := gob.NewEncoder(sendConn)
-					var prepare = message.ClientResponseMessage{Content: stringMessage}
-					var msg interface{}
-					msg = prepare
-					encoder.Encode(&msg)
+					var prepare = msg.ClientResponseMessage{Content: stringMessage}
+					var message interface{}
+					message = prepare
+					encoder.Encode(&message)
 					tcp.Close(sendConn)
 				}
 			}

@@ -1,10 +1,10 @@
-package main
+package core
 
 import (
 	"encoding/gob"
 	"fmt"
-	"lab5/Utils"
-	"lab5/model/Network/message"
+	"lab5Merge/Utils"
+	"lab5Merge/model/net/msg"
 	"net"
 	"time"
 )
@@ -15,7 +15,7 @@ User is asked for a ip and a one word message to send over
 to the system. If the entered ip is not correct/listning the user
 is prompted to enter a new one
 */
-func main() {
+func Client() {
 	go waitForResponse()
 	ConnectToPaxos()
 }
@@ -38,10 +38,10 @@ func ConnectToPaxos() {
 			for i := 0; i < 10; i++ {
 				encoder := gob.NewEncoder(conn)
 				var stringMessage = fmt.Sprintf("%s%d", st, i)
-				var sendMsg = message.ClientRequestMessage{Content: stringMessage}
-				var msg interface{}
-				msg = sendMsg
-				encoder.Encode(&msg)
+				var sendMsg = msg.ClientRequestMessage{Content: stringMessage}
+				var message interface{}
+				message = sendMsg
+				encoder.Encode(&message)
 				//fmt.Println("Message sent to paxos replica")
 				time.Sleep(1000 * time.Millisecond)
 			}
@@ -62,22 +62,22 @@ func waitForResponse() {
 		Utils.CheckError(err)
 		fmt.Println("Waiting for response in client")
 		conn, _ := listener.Accept()
-		go holdConnection(conn)
+		go holdClientConnection(conn)
 	}
 }
 
-func holdConnection(conn net.Conn) {
+func holdClientConnection(conn net.Conn) {
 	var connectionOK = true
 	for connectionOK == true {
 		decoder := gob.NewDecoder(conn)
-		var msg interface{}
-		err := decoder.Decode(&msg)
+		var message interface{}
+		err := decoder.Decode(&message)
 		if err != nil {
 			connectionOK = false
 		}
-		if msg != nil {
-			var clientMsg message.ClientResponseMessage
-			clientMsg = msg.(message.ClientResponseMessage)
+		if message != nil {
+			var clientMsg msg.ClientResponseMessage
+			clientMsg = message.(msg.ClientResponseMessage)
 			fmt.Println("---------------------------------------------------")
 			fmt.Println(clientMsg.Content)
 			fmt.Println("---------------------------------------------------")
