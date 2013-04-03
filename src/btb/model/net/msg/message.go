@@ -3,6 +3,7 @@ package msg
 import (
 	"btb/controller/node"
 	"encoding/gob"
+	"time"
 )
 
 var ()
@@ -17,6 +18,7 @@ func init() {
 	gob.Register(LISTRESPONSE{})
 	gob.Register(MACHINECOUNT{})
 	gob.Register(MESSAGE{})
+	gob.Register(TIMEOUT{})
 }
 
 type Node struct {
@@ -61,4 +63,8 @@ type MACHINECOUNT struct {
 }
 type MESSAGE struct {
 	MSG string
+}
+
+type TIMEOUT struct {
+	DELAY time.Duration
 }

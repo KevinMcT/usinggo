@@ -22,7 +22,6 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 	var leaderRequest node.T_Node
 	for {
 		listener, err := net.ListenTCP("tcp", tcpAddr)
-		//listener.SetDeadline(time.Now().Add(10 * time.Second))
 		err = nil
 		var inMessage string
 		var machineCount msg.MACHINECOUNT
@@ -42,34 +41,28 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 			switch message.(type) {
 			case msg.LISTRESPONSE:
 				nodeList = message.(msg.LISTRESPONSE).LIST
-				//listener.SetDeadline(time.Now().Add(5 * time.Second))
 				nodeChan <- nodeList
 			case msg.HARTBEATREQUEST:
 				tcpHartBeatRequest <- message.(msg.HARTBEATREQUEST)
 				listener.SetDeadline(time.Now().Add(500 * time.Millisecond))
 			case msg.HARTBEATRESPONSE:
 				tcpHartBeatResponse <- message.(msg.HARTBEATRESPONSE)
-				//listener.SetDeadline(time.Now().Add(60 * time.Second))
 			case msg.LEADERREQUEST:
 				leaderRequest = message.(msg.LEADERREQUEST).FROMNODE
-				//listener.SetDeadline(time.Now().Add(250 * time.Millisecond))
 				tcpLeaderRequestChan <- leaderRequest
 			case msg.LEADERRESPONSE:
 				leaderResponse = message.(msg.LEADERRESPONSE).NODE
-				//listener.SetDeadline(time.Now().Add(1000 * time.Millisecond))
 				tcpLeaderResponseChan <- leaderResponse
 			case msg.Node:
 			case msg.Lead:
 			case msg.MACHINECOUNT:
 				machineCount = message.(msg.MACHINECOUNT)
-				//listener.SetDeadline(time.Now().Add(1000 * time.Millisecond))
 				machineCountChan <- machineCount
 			case msg.MESSAGE:
 				inMessage = message.(msg.MESSAGE).MSG
 				messageChan <- inMessage
 			}
 		}
-		//listener.SetDeadline(time.Now().Add(10 * time.Second))
 		leaderDown <- 1
 		fmt.Println("Sent leader down channel")
 	}

@@ -23,9 +23,11 @@ func main() {
 
 		switch in {
 		case 1:
+			//--Calling the Paxos replica--//
 			core.Paxos()
 		case 2:
-			fmt.Println("--Call client here--")
+			//--Calling the Client--//
+			core.Client()
 		case 0:
 			os.Exit(0)
 		}
