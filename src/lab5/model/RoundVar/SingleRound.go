@@ -5,8 +5,9 @@ import (
 )
 
 type roundSingle struct {
-	Round int
-	List  []message.Node
+	Round         int
+	MessageNumber int
+	List          []message.Node
 }
 
 var instantiated *roundSingle = nil

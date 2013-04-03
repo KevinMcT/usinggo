@@ -37,17 +37,15 @@ func init() {
 
 func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan string) {
 	round = RoundVar.GetRound().Round
-	msgNumber = 0
 	self = me
 	waiting = false
 	quorumPromise = false
 	go receviedPromise()
 	go waitForPromise()
 	if led.IP == me.IP {
-		go handleMessages()
 		go sendPrepare()
+		go handleMessages()
 	}
-	round = round + 1
 	for {
 		cv := <-ac
 		waitingMessages.messages.Push(cv)
@@ -58,17 +56,12 @@ func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan s
 //paxos to be processed.
 func handleMessages() {
 	for {
-		fmt.Println("going to sleep")
 		time.Sleep(2 * time.Second)
-		fmt.Println("Done sleeping!")
 		var msg = waitingMessages.messages.Pop()
-		fmt.Println("Popped a value mr!")
-		msgNumber = msgNumber + 1
 		clientValue = msg
-		fmt.Println("Going into system: ", clientValue)
 		if quorumPromise == true {
-			fmt.Println("sending..")
 			sendAccept()
+			RoundVar.GetRound().MessageNumber = msgNumber + 1
 		}
 	}
 }
@@ -100,6 +93,7 @@ func sendAccept() {
 		conn := tcp.Dial(address)
 		if conn != nil {
 			encoder := gob.NewEncoder(conn)
+			msgNumber = RoundVar.GetRound().MessageNumber
 			var accept = message.Accept{ROUND: round, MSGNUMBER: msgNumber, VALUE: clientValue}
 			var msg interface{}
 			msg = accept
@@ -132,7 +126,7 @@ func waitForPromise() {
 	for {
 		<-waitPromisChan
 		waiting = true
-		time.Sleep(2 * time.Second)
+		time.Sleep(3 * time.Second)
 		waiting = false
 		checkPromises()
 	}
@@ -172,6 +166,8 @@ func pickValueFromProposeList() {
 		}
 	}
 	clientValue = largestRoundValue
+	var stringMessage = fmt.Sprintf("Sending accept with value %s for round:%d messageNumber:%d ", clientValue, round, msgNumber)
+	fmt.Println(stringMessage)
 	sendAccept()
 	promiseList = make([]message.Promise, 0)
 }

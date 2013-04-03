@@ -46,6 +46,7 @@ type Accept struct {
 }
 
 type Learn struct {
-	ROUND int
-	VALUE string
+	ROUND     int
+	MSGNUMBER int
+	VALUE     string
 }

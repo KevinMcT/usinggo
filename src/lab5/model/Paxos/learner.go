@@ -14,6 +14,8 @@ var (
 	learns        int
 	value         string
 	learnList     = make([]message.Learn, 0)
+	r             int
+	msgNr         int
 	waitLearnChan = make(chan string, 1)
 )
 
@@ -50,16 +52,25 @@ func waitForLearns() {
 		for _, v := range learnList {
 			if strings.EqualFold(value, "-1") == true {
 				value = v.VALUE
+				r = v.ROUND
+				msgNr = v.MSGNUMBER
 				learns = learns + 1
 			} else if strings.EqualFold(v.VALUE, value) == true {
+				learns = learns + 1
+			} else {
+				value = v.VALUE
+				r = v.ROUND
+				msgNr = v.MSGNUMBER
 				learns = learns + 1
 			}
 		}
 		if learns > (len(RoundVar.GetRound().List) / 2) {
-			fmt.Println("Learnt value ", value)
+			var stringMessage = fmt.Sprintf("Learnt value %s round:%d messageNumber:%d ", value, r, msgNr)
 			learns = 0
 			value = "-1"
-			learnList = make([]message.Learn, 0)
+			fmt.Println(stringMessage)
+		} else {
+			fmt.Println("Did not receive not enough learns, not learning anything!")
 		}
 	}
 }

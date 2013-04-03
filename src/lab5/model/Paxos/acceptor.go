@@ -22,6 +22,7 @@ func Acceptor() {
 	lastAcceptedRound = -1
 	lastAcceptedValue = "-1"
 	promisedRound = 0
+	msgNumber = 0
 	go receivedPrepare()
 	go receivedAccept()
 }
@@ -40,9 +41,13 @@ func receivedAccept() {
 		acceptMsg := value.Message.(message.Accept)
 		if acceptMsg.ROUND == promisedRound {
 			acceptedValue = acceptMsg.VALUE
+			msgNumber = acceptMsg.MSGNUMBER
 			lastAcceptedValue = acceptedValue
 			lastAcceptedRound = promisedRound
 			sendLearn(value.Ip)
+		} else {
+			fmt.Println("Wrong round number bitch!")
+			fmt.Println(acceptMsg.ROUND)
 		}
 	}
 }
@@ -54,7 +59,7 @@ func sendLearn(address string) {
 		sendConn := tcp.Dial(sendAddress)
 		if sendConn != nil {
 			encoder := gob.NewEncoder(sendConn)
-			var learn = message.Learn{ROUND: promisedRound, VALUE: acceptedValue}
+			var learn = message.Learn{ROUND: promisedRound, VALUE: acceptedValue, MSGNUMBER: msgNumber}
 			var msg interface{}
 			msg = learn
 			encoder.Encode(&msg)
