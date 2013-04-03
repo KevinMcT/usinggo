@@ -7,6 +7,7 @@ import (
 type roundSingle struct {
 	Round         int
 	MessageNumber int
+	RespondClient string
 	List          []message.Node
 }
 

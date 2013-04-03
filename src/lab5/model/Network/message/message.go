@@ -13,6 +13,7 @@ func init() {
 	gob.Register(HARTBEATREQUEST{})
 	gob.Register(HARTBEATRESPONSE{})
 	gob.Register(ClientRequestMessage{})
+	gob.Register(ClientResponseMessage{})
 	ClientChan = make(chan ClientRequestMessage, 10)
 }
 
@@ -33,5 +34,10 @@ type HARTBEATRESPONSE struct {
 }
 
 type ClientRequestMessage struct {
+	Content       string
+	RemoteAddress string
+}
+
+type ClientResponseMessage struct {
 	Content string
 }

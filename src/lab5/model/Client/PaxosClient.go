@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/gob"
 	"fmt"
+	"lab5/Utils"
 	"lab5/model/Network/message"
 	"net"
 	"time"
@@ -15,6 +16,7 @@ to the system. If the entered ip is not correct/listning the user
 is prompted to enter a new one
 */
 func main() {
+	go waitForResponse()
 	ConnectToPaxos()
 }
 
@@ -48,4 +50,41 @@ func ConnectToPaxos() {
 		}
 		conn.Close()
 	}
+}
+
+func waitForResponse() {
+	fmt.Println("Waiting for request responses")
+	service := "0.0.0.0:1337"
+	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
+	Utils.CheckError(err)
+	listener, err := net.ListenTCP("tcp", tcpAddr)
+	for {
+		Utils.CheckError(err)
+		fmt.Println("Waiting for response in client")
+		conn, _ := listener.Accept()
+		go holdConnection(conn)
+	}
+}
+
+func holdConnection(conn net.Conn) {
+	var connectionOK = true
+	for connectionOK == true {
+		fmt.Println("Got response in client")
+		decoder := gob.NewDecoder(conn)
+		var msg interface{}
+		err := decoder.Decode(&msg)
+		if err != nil {
+			connectionOK = false
+		}
+		if msg != nil {
+			var clientMsg message.ClientResponseMessage
+			clientMsg = msg.(message.ClientResponseMessage)
+			fmt.Println("---------------------------------------------------")
+			fmt.Println(clientMsg.Content)
+			fmt.Println("---------------------------------------------------")
+		} else {
+			fmt.Println("Message is empty stupid!")
+		}
+	}
+	fmt.Println("Client closed connection, no more to share")
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 func CheckError(err error) {
@@ -20,4 +21,9 @@ func SearchForIP(IP string, array []net.Conn) net.Conn {
 		}
 	}
 	return nil
+}
+
+func GetIp(address string) string {
+	remoteSplit := strings.Split(address, ":")
+	return remoteSplit[0]
 }

@@ -37,12 +37,15 @@ func init() {
 
 func Proposer(led message.Node, me message.Node, nc chan message.Node, ac chan string) {
 	round = RoundVar.GetRound().Round
+	leader = led
 	self = me
 	waiting = false
 	quorumPromise = false
 	go receviedPromise()
 	go waitForPromise()
 	if led.IP == me.IP {
+		fmt.Println(leader)
+		fmt.Println(self)
 		go sendPrepare()
 		go handleMessages()
 	}

@@ -9,6 +9,7 @@ import (
 	"lab5/model/Network/message"
 	"lab5/model/Network/udp"
 	"lab5/model/Paxos"
+	"lab5/model/RoundVar"
 	"net"
 	"os"
 	"time"
@@ -175,9 +176,17 @@ func holdConnection(conn net.Conn) {
 			var clientMsg message.ClientRequestMessage
 			clientMsg = msg.(message.ClientRequestMessage)
 			if leader.IP == selfnode.IP {
+				if clientMsg.RemoteAddress == "" {
+					RoundVar.GetRound().RespondClient = Utils.GetIp(conn.RemoteAddr().String())
+				} else {
+					RoundVar.GetRound().RespondClient = clientMsg.RemoteAddress
+				}
 				acceptorChan <- clientMsg.Content
 			} else {
 				fmt.Println("Im not leader, sending it on!")
+				if clientMsg.RemoteAddress == "" {
+					clientMsg.RemoteAddress = Utils.GetIp(conn.RemoteAddr().String())
+				}
 				leaderService := leader.IP + ":1337"
 				fmt.Println(leaderService)
 				leaderCon, err := net.Dial("tcp", leaderService)

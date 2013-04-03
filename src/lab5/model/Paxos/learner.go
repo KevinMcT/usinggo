@@ -1,9 +1,10 @@
 package Paxos
 
 import (
-	//"encoding/gob"
+	"encoding/gob"
 	"fmt"
 	"lab5/model/Network/message"
+	"lab5/model/Network/tcp"
 	"lab5/model/RoundVar"
 	//"net"
 	"strings"
@@ -69,6 +70,21 @@ func waitForLearns() {
 			learns = 0
 			value = "-1"
 			fmt.Println(stringMessage)
+			if leader.IP == self.IP {
+				sendAddress := RoundVar.GetRound().RespondClient + ":1337"
+				sendConn := tcp.Dial(sendAddress)
+				fmt.Println(sendAddress)
+				if sendConn != nil {
+					fmt.Println("Got connection, sending to client!")
+					encoder := gob.NewEncoder(sendConn)
+					var prepare = message.ClientResponseMessage{Content: stringMessage}
+					var msg interface{}
+					msg = prepare
+					encoder.Encode(&msg)
+					tcp.Close(sendConn)
+				}
+			}
+
 		} else {
 			fmt.Println("Did not receive not enough learns, not learning anything!")
 		}

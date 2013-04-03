@@ -6,7 +6,6 @@ import (
 	"lab5/Utils"
 	"lab5/model/Network/message"
 	"net"
-	"strings"
 )
 
 /*
@@ -45,20 +44,19 @@ func holdConnection(conn net.Conn) {
 			connectionOK = false
 		}
 		if msg != nil {
-			remote := conn.RemoteAddr().String()
-			remoteSplit := strings.Split(remote, ":")
+			ip := Utils.GetIp(conn.RemoteAddr().String())
 			switch msg.(type) {
 			case message.Prepare:
-				var mes = message.Wrapper{Ip: remoteSplit[0], Message: msg.(message.Prepare)}
+				var mes = message.Wrapper{Ip: ip, Message: msg.(message.Prepare)}
 				message.PrepareChan <- mes
 			case message.Promise:
-				var mes = message.Wrapper{Ip: remoteSplit[0], Message: msg.(message.Promise)}
+				var mes = message.Wrapper{Ip: ip, Message: msg.(message.Promise)}
 				message.PromiseChan <- mes
 			case message.Accept:
-				var mes = message.Wrapper{Ip: remoteSplit[0], Message: msg.(message.Accept)}
+				var mes = message.Wrapper{Ip: ip, Message: msg.(message.Accept)}
 				message.AcceptChan <- mes
 			case message.Learn:
-				var mes = message.Wrapper{Ip: remoteSplit[0], Message: msg.(message.Learn)}
+				var mes = message.Wrapper{Ip: ip, Message: msg.(message.Learn)}
 				message.LearnChan <- mes
 			}
 		}
