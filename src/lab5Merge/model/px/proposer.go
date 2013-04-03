@@ -1,7 +1,7 @@
 package px
 
 import (
-	"encoding/gob"
+	//"encoding/gob"
 	"fmt"
 	"lab5Merge/controller/node"
 	"lab5Merge/model/FifoList"
@@ -77,16 +77,16 @@ func sendPrepare() {
 	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
 		sendAddress := v.IP + ":1338"
-		fmt.Println("Address: ", sendAddress)
 		sendConn := tcp.Dial(sendAddress)
-		fmt.Println("Dialed address!")
 		if sendConn != nil {
-			encoder := gob.NewEncoder(sendConn)
+			//encoder := gob.NewEncoder(sendConn)
+			encoder := tcp.GetEncoder(sendAddress)
 			var prepare = msg.Prepare{ROUND: round}
 			var message interface{}
 			message = prepare
 			encoder.Encode(&message)
 			tcp.Close(sendConn)
+			tcp.StoreEncoder(sendConn, *encoder)
 		} else {
 			fmt.Println("Cannot send prepare to node")
 		}
@@ -99,7 +99,8 @@ func sendAccept() {
 		address := v.IP + ":1338"
 		conn := tcp.Dial(address)
 		if conn != nil {
-			encoder := gob.NewEncoder(conn)
+			//encoder := gob.NewEncoder(conn)
+			encoder := tcp.GetEncoder(address)
 			msgNumber = RoundVar.GetRound().MessageNumber
 			var accept = msg.Accept{ROUND: round, MSGNUMBER: msgNumber, VALUE: clientValue}
 			var message interface{}
@@ -109,6 +110,7 @@ func sendAccept() {
 				fmt.Println("Encoding failed!!: ", err)
 			}
 			tcp.Close(conn)
+			tcp.StoreEncoder(conn, *encoder)
 		} else {
 			fmt.Println("Cannot send accept to node")
 		}
@@ -133,7 +135,7 @@ func waitForPromise() {
 	for {
 		<-waitPromisChan
 		waiting = true
-		time.Sleep(3 * time.Second)
+		time.Sleep(100 * time.Millisecond)
 		waiting = false
 		checkPromises()
 	}

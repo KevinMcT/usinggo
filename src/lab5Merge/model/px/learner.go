@@ -48,7 +48,7 @@ func waitForLearns() {
 	for {
 		<-waitLearnChan
 		waiting = true
-		time.Sleep(2 * time.Second)
+		time.Sleep(100 * time.Millisecond)
 		waiting = false
 		for _, v := range learnList {
 			if strings.EqualFold(value, "-1") == true {

@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"encoding/gob"
 	"fmt"
 	"lab5Merge/Utils"
 	"net"
@@ -9,6 +10,7 @@ import (
 type pool struct {
 	nConns          int //number of created connections
 	freeConnections []net.Conn
+	test            map[net.Conn]*gob.Encoder
 }
 
 var instantiated *pool = nil
@@ -18,6 +20,31 @@ func init() {
 	instantiated = new(pool)
 	instantiated.nConns = 0
 	instantiated.freeConnections = make([]net.Conn, 0)
+	instantiated.test = make(map[net.Conn]*gob.Encoder)
+}
+
+func GetEncoder(url string) *gob.Encoder {
+	for i, _ := range instantiated.test {
+		if i.RemoteAddr().String() == url {
+			encoder := instantiated.test[i]
+			fmt.Println("--Found encoder for:", url, "--")
+			return encoder
+		}
+	}
+	conn, _ := net.Dial("tcp", url)
+	encoder := gob.NewEncoder(conn)
+	fmt.Println("--Created new encoder--")
+	return encoder
+}
+
+func StoreEncoder(conn net.Conn, encoder gob.Encoder) *gob.Encoder {
+	for i, _ := range instantiated.test {
+		if i == conn {
+			return nil
+		}
+	}
+	instantiated.test[conn] = &encoder
+	return nil
 }
 
 /*

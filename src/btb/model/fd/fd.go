@@ -81,8 +81,9 @@ func AppendIfMissing(slice []node.T_Node, i node.T_Node) []node.T_Node {
 }
 
 func GetResponse(tcpResponseChan chan msg.HARTBEATRESPONSE) {
+	var i int
 	for {
 		<-tcpResponseChan
-		//fmt.Println("Got response....")
+		i = i + 1
 	}
 }
