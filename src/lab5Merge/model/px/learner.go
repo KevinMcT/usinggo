@@ -72,17 +72,10 @@ func waitForLearns() {
 			fmt.Println(stringMessage)
 			if leader.IP == self.IP {
 				sendAddress := RoundVar.GetRound().RespondClient + ":1337"
-				sendConn := tcp.Dial(sendAddress)
-				if sendConn != nil {
-					//encoder := gob.NewEncoder(sendConn)
-					encoder := tcp.GetEncoder(sendAddress)
-					var prepare = msg.ClientResponseMessage{Content: stringMessage}
-					var message interface{}
-					message = prepare
-					encoder.Encode(&message)
-					tcp.Close(sendConn)
-					tcp.StoreEncoder(sendConn, *encoder)
-				}
+				var prepare = msg.ClientResponseMessage{Content: stringMessage}
+				var message interface{}
+				message = prepare
+				tcp.SendPaxosMessage(sendAddress, message)
 			}
 
 		} else {

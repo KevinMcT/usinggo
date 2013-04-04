@@ -56,20 +56,10 @@ func sendLearn(address string) {
 	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
 		sendAddress := v.IP + ":1338"
-		sendConn := tcp.Dial(sendAddress)
-		if sendConn != nil {
-			//encoder := gob.NewEncoder(sendConn)
-			encoder := tcp.GetEncoder(sendAddress)
-			var learn = msg.Learn{ROUND: promisedRound, VALUE: acceptedValue, MSGNUMBER: msgNumber}
-			var message interface{}
-			message = learn
-			encoder.Encode(&message)
-			//fmt.Println("Sending learn")
-			tcp.Close(sendConn)
-			tcp.StoreEncoder(sendConn, *encoder)
-		} else {
-			fmt.Println("Cannot send learn to node")
-		}
+		var learn = msg.Learn{ROUND: promisedRound, VALUE: acceptedValue, MSGNUMBER: msgNumber}
+		var message interface{}
+		message = learn
+		tcp.SendPaxosMessage(sendAddress, message)
 	}
 }
 
@@ -77,18 +67,8 @@ func sendPromise(address string) {
 	address = address + ":1338"
 	RoundVar.GetRound().Round = promisedRound
 	fmt.Println("Promised to round: ", promisedRound)
-	conn := tcp.Dial(address)
-	if conn != nil {
-		//encoder := gob.NewEncoder(conn)
-		encoder := tcp.GetEncoder(address)
-		var promise = msg.Promise{ROUND: promisedRound, LASTACCEPTEDROUND: lastAcceptedRound, LASTACCEPTEDVALUE: lastAcceptedValue}
-		var message interface{}
-		message = promise
-		encoder.Encode(&message)
-		//fmt.Println("Sending promise")
-		tcp.Close(conn)
-		tcp.StoreEncoder(conn, *encoder)
-	} else {
-		fmt.Println("Cannot send promise to node")
-	}
+	var promise = msg.Promise{ROUND: promisedRound, LASTACCEPTEDROUND: lastAcceptedRound, LASTACCEPTEDVALUE: lastAcceptedValue}
+	var message interface{}
+	message = promise
+	tcp.SendPaxosMessage(address, message)
 }

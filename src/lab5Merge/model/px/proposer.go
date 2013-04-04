@@ -77,19 +77,10 @@ func sendPrepare() {
 	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
 		sendAddress := v.IP + ":1338"
-		sendConn := tcp.Dial(sendAddress)
-		if sendConn != nil {
-			//encoder := gob.NewEncoder(sendConn)
-			encoder := tcp.GetEncoder(sendAddress)
-			var prepare = msg.Prepare{ROUND: round}
-			var message interface{}
-			message = prepare
-			encoder.Encode(&message)
-			tcp.Close(sendConn)
-			tcp.StoreEncoder(sendConn, *encoder)
-		} else {
-			fmt.Println("Cannot send prepare to node")
-		}
+		var prepare = msg.Prepare{ROUND: round}
+		var message interface{}
+		message = prepare
+		tcp.SendPaxosMessage(sendAddress, message)
 	}
 }
 
@@ -97,23 +88,10 @@ func sendAccept() {
 	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
 		address := v.IP + ":1338"
-		conn := tcp.Dial(address)
-		if conn != nil {
-			//encoder := gob.NewEncoder(conn)
-			encoder := tcp.GetEncoder(address)
-			msgNumber = RoundVar.GetRound().MessageNumber
-			var accept = msg.Accept{ROUND: round, MSGNUMBER: msgNumber, VALUE: clientValue}
-			var message interface{}
-			message = accept
-			var err = encoder.Encode(&message)
-			if err != nil {
-				fmt.Println("Proposer: Encoding failed!!: ", err)
-			}
-			tcp.Close(conn)
-			tcp.StoreEncoder(conn, *encoder)
-		} else {
-			fmt.Println("Cannot send accept to node")
-		}
+		var accept = msg.Accept{ROUND: round, MSGNUMBER: msgNumber, VALUE: clientValue}
+		var message interface{}
+		message = accept
+		tcp.SendPaxosMessage(address, message)
 	}
 }
 
