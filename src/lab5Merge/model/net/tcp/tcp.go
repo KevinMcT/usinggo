@@ -81,6 +81,22 @@ func Send(ip string, msg interface{}) error {
 	return err
 }
 
+func SendPaxosMessage(address string, message interface{}) {
+	conn := Dial(address)
+	if conn != nil {
+		//encoder := gob.NewEncoder(conn)
+		encoder := GetEncoder(address)
+		var err = encoder.Encode(&message)
+		if err != nil {
+			fmt.Println("TCP Paxos message: Encoding failed!!: ", err)
+		}
+		Close(conn)
+		StoreEncoder(conn, *encoder)
+	} else {
+		fmt.Println("Cannot send accept to node")
+	}
+}
+
 func AppendIfMissing(slice []node.T_Node, i node.T_Node) []node.T_Node {
 	for _, ele := range slice {
 		if ele.IP == i.IP {

@@ -1,7 +1,7 @@
 package px
 
 import (
-	"encoding/gob"
+	//"encoding/gob"
 	"fmt"
 	"lab5Merge/model/RoundVar"
 	"lab5Merge/model/net/msg"
@@ -74,12 +74,14 @@ func waitForLearns() {
 				sendAddress := RoundVar.GetRound().RespondClient + ":1337"
 				sendConn := tcp.Dial(sendAddress)
 				if sendConn != nil {
-					encoder := gob.NewEncoder(sendConn)
+					//encoder := gob.NewEncoder(sendConn)
+					encoder := tcp.GetEncoder(sendAddress)
 					var prepare = msg.ClientResponseMessage{Content: stringMessage}
 					var message interface{}
 					message = prepare
 					encoder.Encode(&message)
 					tcp.Close(sendConn)
+					tcp.StoreEncoder(sendConn, *encoder)
 				}
 			}
 

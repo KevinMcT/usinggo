@@ -48,7 +48,7 @@ func ConnectToPaxos() {
 		} else {
 			fmt.Println("Seems like the node you are trying to connect is gone down or does not exist. Please try another address")
 		}
-		conn.Close()
+		//conn.Close()
 	}
 }
 

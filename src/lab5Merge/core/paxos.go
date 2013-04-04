@@ -262,13 +262,13 @@ func holdReplicaConnection(conn net.Conn) {
 				fmt.Println(leaderService)
 				leaderCon, err := net.Dial("tcp", leaderService)
 				if err != nil {
-					fmt.Println(err)
+					fmt.Println("Paxos:", err)
 				} else {
 					encoder := gob.NewEncoder(leaderCon)
 					message = clientMsg
 					encoder.Encode(&message)
 				}
-				leaderCon.Close()
+				//leaderCon.Close()
 			}
 		} else {
 			fmt.Println("Sending empty messages stupid!")

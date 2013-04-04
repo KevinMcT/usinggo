@@ -1,7 +1,7 @@
 package px
 
 import (
-	"encoding/gob"
+	//"encoding/gob"
 	"fmt"
 	"lab5Merge/model/RoundVar"
 	"lab5Merge/model/net/msg"
@@ -58,13 +58,15 @@ func sendLearn(address string) {
 		sendAddress := v.IP + ":1338"
 		sendConn := tcp.Dial(sendAddress)
 		if sendConn != nil {
-			encoder := gob.NewEncoder(sendConn)
+			//encoder := gob.NewEncoder(sendConn)
+			encoder := tcp.GetEncoder(sendAddress)
 			var learn = msg.Learn{ROUND: promisedRound, VALUE: acceptedValue, MSGNUMBER: msgNumber}
 			var message interface{}
 			message = learn
 			encoder.Encode(&message)
 			//fmt.Println("Sending learn")
 			tcp.Close(sendConn)
+			tcp.StoreEncoder(sendConn, *encoder)
 		} else {
 			fmt.Println("Cannot send learn to node")
 		}
@@ -77,13 +79,15 @@ func sendPromise(address string) {
 	fmt.Println("Promised to round: ", promisedRound)
 	conn := tcp.Dial(address)
 	if conn != nil {
-		encoder := gob.NewEncoder(conn)
+		//encoder := gob.NewEncoder(conn)
+		encoder := tcp.GetEncoder(address)
 		var promise = msg.Promise{ROUND: promisedRound, LASTACCEPTEDROUND: lastAcceptedRound, LASTACCEPTEDVALUE: lastAcceptedValue}
 		var message interface{}
 		message = promise
 		encoder.Encode(&message)
 		//fmt.Println("Sending promise")
 		tcp.Close(conn)
+		tcp.StoreEncoder(conn, *encoder)
 	} else {
 		fmt.Println("Cannot send promise to node")
 	}

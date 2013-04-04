@@ -107,7 +107,7 @@ func sendAccept() {
 			message = accept
 			var err = encoder.Encode(&message)
 			if err != nil {
-				fmt.Println("Encoding failed!!: ", err)
+				fmt.Println("Proposer: Encoding failed!!: ", err)
 			}
 			tcp.Close(conn)
 			tcp.StoreEncoder(conn, *encoder)
@@ -135,7 +135,7 @@ func waitForPromise() {
 	for {
 		<-waitPromisChan
 		waiting = true
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(2000 * time.Millisecond)
 		waiting = false
 		checkPromises()
 	}
