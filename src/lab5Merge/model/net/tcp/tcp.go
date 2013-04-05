@@ -89,11 +89,12 @@ func SendPaxosMessage(address string, message interface{}) {
 		var err = encoder.Encode(&message)
 		if err != nil {
 			fmt.Println("TCP Paxos message: Encoding failed!!: ", err)
+		} else {
+			Close(conn)
+			StoreEncoder(conn, *encoder)
 		}
-		Close(conn)
-		StoreEncoder(conn, *encoder)
 	} else {
-		fmt.Println("Cannot send accept to node")
+		fmt.Println("Cannot send message to node")
 	}
 }
 

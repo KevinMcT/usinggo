@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"lab5Merge/Utils"
 	"lab5Merge/model/net/msg"
+	//"lab5Merge/model/net/tcp"
 	"net"
 	"time"
 )
@@ -68,8 +69,8 @@ func waitForResponse() {
 
 func holdClientConnection(conn net.Conn) {
 	var connectionOK = true
+	decoder := gob.NewDecoder(conn)
 	for connectionOK == true {
-		decoder := gob.NewDecoder(conn)
 		var message interface{}
 		err := decoder.Decode(&message)
 		if err != nil {
@@ -85,5 +86,6 @@ func holdClientConnection(conn net.Conn) {
 			fmt.Println("Message is empty stupid!")
 		}
 	}
-	fmt.Println("Client closed connection, no more to share")
+	//tcp.StoreDecoder(conn, *decoder)
+	fmt.Println("Paxos closed connection, no more to share")
 }

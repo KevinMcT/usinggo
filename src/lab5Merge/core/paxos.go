@@ -241,6 +241,7 @@ func holdReplicaConnection(conn net.Conn) {
 		var err = decoder.Decode(&message)
 		if err != nil {
 			connectionOK = false
+			fmt.Println("Error in Paxos: ", err)
 		}
 		if message != nil {
 			var clientMsg msg.ClientRequestMessage
@@ -252,7 +253,9 @@ func holdReplicaConnection(conn net.Conn) {
 				} else {
 					RoundVar.GetRound().RespondClient = clientMsg.RemoteAddress
 				}
+				fmt.Println("--Sending message on acceptor chan--")
 				acceptorChan <- clientMsg.Content
+				fmt.Println("--Sent message on acceptor chan--")
 			} else {
 				fmt.Println("Im not leader, sending it on!")
 				if clientMsg.RemoteAddress == "" {
@@ -268,11 +271,11 @@ func holdReplicaConnection(conn net.Conn) {
 					message = clientMsg
 					encoder.Encode(&message)
 				}
-				//leaderCon.Close()
 			}
 		} else {
 			fmt.Println("Sending empty messages stupid!")
 		}
 	}
+	//tcp.StoreDecoder(conn, *decoder)
 	fmt.Println("Client closed connection, no more to share")
 }

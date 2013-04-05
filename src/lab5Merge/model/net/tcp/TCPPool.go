@@ -44,6 +44,7 @@ func StoreEncoder(conn net.Conn, encoder gob.Encoder) *gob.Encoder {
 		}
 	}
 	instantiated.test[conn] = &encoder
+	fmt.Println("--Stored encoder for: ", conn.RemoteAddr().String())
 	return nil
 }
 

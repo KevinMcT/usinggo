@@ -8,32 +8,33 @@ import (
 	"lab5Merge/model/RoundVar"
 	"lab5Merge/model/net/msg"
 	"lab5Merge/model/net/tcp"
-	"sync"
+	//"sync"
 	"time"
 )
 
-type WaitingMessages struct {
+/*type WaitingMessages struct {
 	mu       sync.Mutex
 	messages *FifoList.Fifo
-}
+}*/
 
 var (
-	leader          node.T_Node
-	self            node.T_Node
-	nodeList        = make([]node.T_Node, 0)
-	round           int
-	msgNumber       int
-	clientValue     string
-	promiseList     = make([]msg.Promise, 0)
-	quorumPromise   bool
-	waitPromisChan  = make(chan string, 1)
-	waiting         bool
-	waitingMessages *WaitingMessages
+	leader         node.T_Node
+	self           node.T_Node
+	nodeList       = make([]node.T_Node, 0)
+	round          int
+	msgNumber      int
+	clientValue    string
+	promiseList    = make([]msg.Promise, 0)
+	quorumPromise  bool
+	waitPromisChan = make(chan string, 1)
+	waiting        bool
+	//waitingMessages *WaitingMessages
+	wmessages = FifoList.NewQueue()
 )
 
 func init() {
-	waitingMessages = new(WaitingMessages)
-	waitingMessages.messages = FifoList.NewFifo()
+	//waitingMessages = new(WaitingMessages)
+	//waitingMessages.messages = FifoList.NewFifo()
 }
 
 func Proposer(led node.T_Node, me node.T_Node, nc chan node.T_Node, ac chan string) {
@@ -48,11 +49,19 @@ func Proposer(led node.T_Node, me node.T_Node, nc chan node.T_Node, ac chan stri
 		//fmt.Println(leader)
 		//fmt.Println(self)
 		go sendPrepare()
+		go handlePush(ac)
 		go handleMessages()
 	}
+
+}
+
+func handlePush(ac chan string) {
 	for {
 		cv := <-ac
-		waitingMessages.messages.Push(cv)
+		fmt.Println("--Got message from Acceptor Chan--")
+		//waitingMessages.messages.Push(cv)
+		wmessages.Add(cv)
+		fmt.Println("--Pushed message to queue--")
 	}
 }
 
@@ -61,7 +70,10 @@ func Proposer(led node.T_Node, me node.T_Node, nc chan node.T_Node, ac chan stri
 func handleMessages() {
 	for {
 		time.Sleep(2 * time.Second)
-		var msg = waitingMessages.messages.Pop()
+		//var msg = waitingMessages.messages.Pop()
+		var msg = wmessages.Next().(string)
+		fmt.Println("--Pop'ed message from queue")
+
 		clientValue = msg
 		if quorumPromise == true {
 			sendAccept()
@@ -161,7 +173,7 @@ func pickValueFromProposeList() {
 
 //Method for adding a incoming message from the client to the que of 
 //waiting messages. 
-func addMessageToQue(msg string) {
+/*func addMessageToQue(msg string) {
 	waitingMessages.mu.Lock()
 	waitingMessages.messages.Push(msg)
 	waitingMessages.mu.Unlock()
@@ -173,4 +185,4 @@ func getNextMessageFromQue() string {
 	var msg = waitingMessages.messages.Pop()
 	waitingMessages.mu.Unlock()
 	return msg
-}
+}*/

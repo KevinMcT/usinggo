@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"lab5Merge/Utils"
 	"lab5Merge/model/net/msg"
+	//"lab5Merge/model/net/tcp"
 	"net"
 )
 
@@ -30,14 +31,13 @@ func HandlePaxosMessages() {
 		Utils.CheckError(err)
 		conn, _ := listener.Accept()
 		go holdConnection(conn)
-
 	}
 }
 
 func holdConnection(conn net.Conn) {
 	var connectionOK = true
+	decoder := gob.NewDecoder(conn)
 	for connectionOK == true {
-		decoder := gob.NewDecoder(conn)
 		var message interface{}
 		err := decoder.Decode(&message)
 		if err != nil {
@@ -65,6 +65,7 @@ func holdConnection(conn net.Conn) {
 			}
 		}
 	}
+	//tcp.StoreDecoder(conn, *decoder)
 	fmt.Println("Connection died, letting it go")
 	fmt.Println(conn.RemoteAddr().String())
 }
