@@ -13,6 +13,8 @@ import (
 
 var (
 	serverList []node.T_Node
+	sendAll    bool
+	sentChan   = make(chan int, 1)
 )
 
 /*
@@ -47,9 +49,11 @@ func ConnectToPaxos() {
 			fmt.Println("Wait for response before sending new message? Y/N")
 			fmt.Scanf("%s", &all)
 			if all == "Y" || all == "y" || all == "yes" {
+				sendAll = false
 				sendToPaxos(st, conn)
 			}
 			if all == "N" || all == "n" || all == "no" {
+				sendAll = true
 				sendToPaxos(st, conn)
 			}
 
@@ -67,6 +71,9 @@ func sendToPaxos(st string, conn net.Conn) {
 		var message interface{}
 		message = sendMsg
 		encoder.Encode(&message)
+		if sendAll == false {
+			<-sentChan
+		}
 		time.Sleep(10 * time.Millisecond)
 	}
 }
@@ -101,6 +108,9 @@ func holdClientConnection(conn net.Conn) {
 				fmt.Println("---------------------------------------------------")
 				fmt.Println(clientMsg.Content)
 				fmt.Println("---------------------------------------------------")
+				if sendAll == false {
+					sentChan <- 1
+				}
 			} else {
 				fmt.Println("Message is empty stupid!")
 			}
