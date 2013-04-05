@@ -48,11 +48,11 @@ func Paxos() {
 	fmt.Println("Starting node creation. . . ")
 	go node.Node(udpListenChan, createNodeChan)
 	fmt.Println("--Done!--")
-	fmt.Println("Starting dynamic nodeadding. . .")
-	go addNodesFromUdp(udpListenChan)
-	fmt.Println("--Done!--")
 	fmt.Println("Starting TCP listen. . .")
 	go tcp.Listen(tcpNodeChan, tcpLeaderRequestChan, machineCountChan, messageChan, tcpLeaderResponseChan, tcpHartbeatRequestChan, tcpHartbeatResponseChan, leaderDown)
+	fmt.Println("--Done!--")
+	fmt.Println("Starting dynamic nodeadding. . .")
+	go addNodesFromUdp(udpListenChan)
 	fmt.Println("--Done!--")
 	fmt.Println("Starting UDP listen. . .")
 	go udp.Listen(udpListenChan)
@@ -94,7 +94,7 @@ func Paxos() {
 		for ever {
 			timeout := make(chan bool, 1)
 			go func() {
-				time.Sleep(1 * time.Millisecond)
+				time.Sleep(5000 * time.Millisecond)
 				timeout <- true
 			}()
 			select {
@@ -147,8 +147,15 @@ func Paxos() {
 			case list := <-tcpNodeChan:
 				nodeList = list
 				endNodeListChan <- list
+			case <-timeout:
+				for _, v := range nodeList {
+					if me.IP != v.IP {
+						go tcp.Send(v.IP, msg.LISTRESPONSE{LIST: nodeList})
+					}
+				}
 			}
 		}
+
 	}
 }
 
