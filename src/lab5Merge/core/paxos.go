@@ -253,9 +253,7 @@ func holdReplicaConnection(conn net.Conn) {
 				} else {
 					RoundVar.GetRound().RespondClient = clientMsg.RemoteAddress
 				}
-				fmt.Println("--Sending message on acceptor chan--")
 				acceptorChan <- clientMsg.Content
-				fmt.Println("--Sent message on acceptor chan--")
 			} else {
 				fmt.Println("Im not leader, sending it on!")
 				if clientMsg.RemoteAddress == "" {

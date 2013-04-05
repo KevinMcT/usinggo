@@ -43,7 +43,6 @@ func ConnectToPaxos() {
 				var message interface{}
 				message = sendMsg
 				encoder.Encode(&message)
-				//fmt.Println("Message sent to paxos replica")
 				time.Sleep(1000 * time.Millisecond)
 			}
 		} else {
@@ -61,7 +60,6 @@ func waitForResponse() {
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	for {
 		Utils.CheckError(err)
-		fmt.Println("Waiting for response in client")
 		conn, _ := listener.Accept()
 		go holdClientConnection(conn)
 	}

@@ -47,19 +47,15 @@ func holdConnection(conn net.Conn) {
 			ip := Utils.GetIp(conn.RemoteAddr().String())
 			switch message.(type) {
 			case msg.Prepare:
-				fmt.Println("received Prepare")
 				var mes = msg.Wrapper{Ip: ip, Message: message.(msg.Prepare)}
 				msg.PrepareChan <- mes
 			case msg.Promise:
-				fmt.Println("received Promise")
 				var mes = msg.Wrapper{Ip: ip, Message: message.(msg.Promise)}
 				msg.PromiseChan <- mes
 			case msg.Accept:
-				fmt.Println("received Accept")
 				var mes = msg.Wrapper{Ip: ip, Message: message.(msg.Accept)}
 				msg.AcceptChan <- mes
 			case msg.Learn:
-				fmt.Println("received Learn")
 				var mes = msg.Wrapper{Ip: ip, Message: message.(msg.Learn)}
 				msg.LearnChan <- mes
 			}

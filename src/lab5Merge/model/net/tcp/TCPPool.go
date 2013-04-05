@@ -27,13 +27,11 @@ func GetEncoder(url string) *gob.Encoder {
 	for i, _ := range instantiated.test {
 		if i.RemoteAddr().String() == url {
 			encoder := instantiated.test[i]
-			fmt.Println("--Found encoder for:", url, "--")
 			return encoder
 		}
 	}
 	conn, _ := net.Dial("tcp", url)
 	encoder := gob.NewEncoder(conn)
-	fmt.Println("--Created new encoder--")
 	return encoder
 }
 
@@ -44,7 +42,6 @@ func StoreEncoder(conn net.Conn, encoder gob.Encoder) *gob.Encoder {
 		}
 	}
 	instantiated.test[conn] = &encoder
-	fmt.Println("--Stored encoder for: ", conn.RemoteAddr().String())
 	return nil
 }
 

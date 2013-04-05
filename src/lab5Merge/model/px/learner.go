@@ -36,6 +36,7 @@ func receivedLearn() {
 		}
 		learnMsg := learn.Message.(msg.Learn)
 		learnList = append(learnList, learnMsg)
+		fmt.Println("--LEARNT: ", learnList, "--")
 	}
 }
 
@@ -48,7 +49,7 @@ func waitForLearns() {
 	for {
 		<-waitLearnChan
 		waiting = true
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 		waiting = false
 		for _, v := range learnList {
 			if strings.EqualFold(value, "-1") == true {
@@ -69,6 +70,7 @@ func waitForLearns() {
 			var stringMessage = fmt.Sprintf("Learnt value %s round:%d messageNumber:%d ", value, r, msgNr)
 			learns = 0
 			value = "-1"
+			learnList = make([]msg.Learn, 0)
 			fmt.Println(stringMessage)
 			if leader.IP == self.IP {
 				sendAddress := RoundVar.GetRound().RespondClient + ":1337"

@@ -58,10 +58,7 @@ func Proposer(led node.T_Node, me node.T_Node, nc chan node.T_Node, ac chan stri
 func handlePush(ac chan string) {
 	for {
 		cv := <-ac
-		fmt.Println("--Got message from Acceptor Chan--")
-		//waitingMessages.messages.Push(cv)
 		wmessages.Add(cv)
-		fmt.Println("--Pushed message to queue--")
 	}
 }
 
@@ -69,15 +66,16 @@ func handlePush(ac chan string) {
 //paxos to be processed.
 func handleMessages() {
 	for {
-		time.Sleep(2 * time.Second)
+		time.Sleep(10 * time.Millisecond)
 		//var msg = waitingMessages.messages.Pop()
-		var msg = wmessages.Next().(string)
-		fmt.Println("--Pop'ed message from queue")
-
-		clientValue = msg
-		if quorumPromise == true {
-			sendAccept()
-			RoundVar.GetRound().MessageNumber = msgNumber + 1
+		var msg = wmessages.Next()
+		//fmt.Println("--Pop'ed message from queue")
+		if msg != nil {
+			clientValue = msg.(string)
+			if quorumPromise == true {
+				sendAccept()
+				RoundVar.GetRound().MessageNumber = msgNumber + 1
+			}
 		}
 	}
 }
@@ -125,7 +123,7 @@ func waitForPromise() {
 	for {
 		<-waitPromisChan
 		waiting = true
-		time.Sleep(2000 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 		waiting = false
 		checkPromises()
 	}
