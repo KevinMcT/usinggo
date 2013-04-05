@@ -23,6 +23,8 @@ func init() {
 	gob.Register(TIMEOUT{})
 	gob.Register(ClientRequestMessage{})
 	gob.Register(ClientResponseMessage{})
+	gob.Register(ClientRequestNodes{})
+	gob.Register(ClientResponseNodes{})
 	ClientChan = make(chan ClientRequestMessage, 10)
 }
 
@@ -81,4 +83,12 @@ type ClientRequestMessage struct {
 
 type ClientResponseMessage struct {
 	Content string
+}
+
+type ClientRequestNodes struct {
+	RemoteAddress string
+}
+
+type ClientResponseNodes struct {
+	List []node.T_Node
 }

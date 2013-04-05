@@ -4,10 +4,15 @@ import (
 	"encoding/gob"
 	"fmt"
 	"lab5Merge/Utils"
+	"lab5Merge/controller/node"
 	"lab5Merge/model/net/msg"
-	//"lab5Merge/model/net/tcp"
 	"net"
+	"os"
 	"time"
+)
+
+var (
+	serverList []node.T_Node
 )
 
 /*
@@ -32,23 +37,37 @@ func ConnectToPaxos() {
 		service := ip + ":1337"
 		fmt.Println(service)
 		conn, err := net.Dial("tcp", service)
+		fmt.Println("Waiting for servers... This might take up to 5 seconds, but you can still send a message")
+		go GetServers(conn, GetIP())
 		if err == nil {
 			fmt.Println("Enter a value to send")
 			var st string
 			fmt.Scanf("%s", &st)
-			for i := 0; i < 10; i++ {
-				encoder := gob.NewEncoder(conn)
-				var stringMessage = fmt.Sprintf("%s%d", st, i)
-				var sendMsg = msg.ClientRequestMessage{Content: stringMessage}
-				var message interface{}
-				message = sendMsg
-				encoder.Encode(&message)
-				time.Sleep(1000 * time.Millisecond)
+			var all string
+			fmt.Println("Wait for response before sending new message? Y/N")
+			fmt.Scanf("%s", &all)
+			if all == "Y" || all == "y" || all == "yes" {
+				sendToPaxos(st, conn)
 			}
+			if all == "N" || all == "n" || all == "no" {
+				sendToPaxos(st, conn)
+			}
+
 		} else {
 			fmt.Println("Seems like the node you are trying to connect is gone down or does not exist. Please try another address")
 		}
-		//conn.Close()
+	}
+}
+
+func sendToPaxos(st string, conn net.Conn) {
+	for i := 0; i < 10; i++ {
+		encoder := gob.NewEncoder(conn)
+		var stringMessage = fmt.Sprintf("%s%d", st, i)
+		var sendMsg = msg.ClientRequestMessage{Content: stringMessage}
+		var message interface{}
+		message = sendMsg
+		encoder.Encode(&message)
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
@@ -71,19 +90,51 @@ func holdClientConnection(conn net.Conn) {
 	for connectionOK == true {
 		var message interface{}
 		err := decoder.Decode(&message)
-		if err != nil {
-			connectionOK = false
-		}
-		if message != nil {
-			var clientMsg msg.ClientResponseMessage
-			clientMsg = message.(msg.ClientResponseMessage)
-			fmt.Println("---------------------------------------------------")
-			fmt.Println(clientMsg.Content)
-			fmt.Println("---------------------------------------------------")
-		} else {
-			fmt.Println("Message is empty stupid!")
+		switch message.(type) {
+		case msg.ClientResponseMessage:
+			if err != nil {
+				connectionOK = false
+			}
+			if message != nil {
+				var clientMsg msg.ClientResponseMessage
+				clientMsg = message.(msg.ClientResponseMessage)
+				fmt.Println("---------------------------------------------------")
+				fmt.Println(clientMsg.Content)
+				fmt.Println("---------------------------------------------------")
+			} else {
+				fmt.Println("Message is empty stupid!")
+			}
+		case msg.ClientResponseNodes:
+			var clientMsg msg.ClientResponseNodes
+			clientMsg = message.(msg.ClientResponseNodes)
+			serverList = clientMsg.List
 		}
 	}
-	//tcp.StoreDecoder(conn, *decoder)
 	fmt.Println("Paxos closed connection, no more to share")
+}
+
+func GetServers(conn net.Conn, myIP string) {
+	for {
+		timeout := make(chan bool, 1)
+		go func() {
+			time.Sleep(5000 * time.Millisecond)
+			timeout <- true
+		}()
+		select {
+		case <-timeout:
+			encoder := gob.NewEncoder(conn)
+			var sendMsg = msg.ClientRequestNodes{RemoteAddress: myIP + ":1337"}
+			var message interface{}
+			message = sendMsg
+			encoder.Encode(&message)
+		}
+	}
+}
+
+func GetIP() string {
+	name, _ := os.Hostname()
+	addr, _ := net.LookupHost(name)
+	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
+	ip := UDPAddr.IP.String()
+	return ip
 }
