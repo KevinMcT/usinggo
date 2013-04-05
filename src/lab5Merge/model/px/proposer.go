@@ -22,14 +22,12 @@ var (
 	self           node.T_Node
 	nodeList       = make([]node.T_Node, 0)
 	round          int
-	msgNumber      int
 	clientValue    string
 	promiseList    = make([]msg.Promise, 0)
 	quorumPromise  bool
 	waitPromisChan = make(chan string, 1)
 	waiting        bool
-	//waitingMessages *WaitingMessages
-	wmessages = FifoList.NewQueue()
+	wmessages      = FifoList.NewQueue()
 )
 
 func init() {
@@ -73,8 +71,8 @@ func handleMessages() {
 		if msg != nil {
 			clientValue = msg.(string)
 			if quorumPromise == true {
+				RoundVar.GetRound().MessageNumber = RoundVar.GetRound().MessageNumber + 1
 				sendAccept()
-				RoundVar.GetRound().MessageNumber = msgNumber + 1
 			}
 		}
 	}
@@ -98,7 +96,7 @@ func sendAccept() {
 	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
 		address := v.IP + ":1338"
-		var accept = msg.Accept{ROUND: round, MSGNUMBER: msgNumber, VALUE: clientValue}
+		var accept = msg.Accept{ROUND: round, MSGNUMBER: RoundVar.GetRound().MessageNumber, VALUE: clientValue}
 		var message interface{}
 		message = accept
 		tcp.SendPaxosMessage(address, message)
@@ -163,7 +161,7 @@ func pickValueFromProposeList() {
 		}
 	}
 	clientValue = largestRoundValue
-	var stringMessage = fmt.Sprintf("Sending accept with value %s for round:%d messageNumber:%d ", clientValue, round, msgNumber)
+	var stringMessage = fmt.Sprintf("Sending accept with value %s for round:%d messageNumber:%d ", clientValue, round, RoundVar.GetRound().MessageNumber)
 	fmt.Println(stringMessage)
 	sendAccept()
 	promiseList = make([]msg.Promise, 0)

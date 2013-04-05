@@ -14,6 +14,7 @@ var (
 	promisedRound     int
 	acceptedValue     string
 	hasAccepted       bool
+	msgNumber         int
 )
 
 func Acceptor() {
