@@ -251,30 +251,54 @@ func holdReplicaConnection(conn net.Conn) {
 			fmt.Println("Error in Paxos: ", err)
 		}
 		if message != nil {
-			var clientMsg msg.ClientRequestMessage
-			clientMsg = message.(msg.ClientRequestMessage)
-			fmt.Println("ClientMessage: ", clientMsg)
-			if leader.IP == me.IP {
-				if clientMsg.RemoteAddress == "" {
-					RoundVar.GetRound().RespondClient = Utils.GetIp(conn.RemoteAddr().String())
+			switch message.(type) {
+			case msg.ClientRequestMessage:
+				var clientMsg msg.ClientRequestMessage
+				clientMsg = message.(msg.ClientRequestMessage)
+				fmt.Println("ClientMessage: ", clientMsg)
+				if leader.IP == me.IP {
+					if clientMsg.RemoteAddress == "" {
+						RoundVar.GetRound().RespondClient = Utils.GetIp(conn.RemoteAddr().String())
+					} else {
+						RoundVar.GetRound().RespondClient = clientMsg.RemoteAddress
+					}
+					acceptorChan <- clientMsg.Content
 				} else {
-					RoundVar.GetRound().RespondClient = clientMsg.RemoteAddress
+					fmt.Println("Im not leader, sending it on!")
+					if clientMsg.RemoteAddress == "" {
+						clientMsg.RemoteAddress = Utils.GetIp(conn.RemoteAddr().String())
+					}
+					leaderService := leader.IP + ":1337"
+					fmt.Println(leaderService)
+					leaderCon, err := net.Dial("tcp", leaderService)
+					if err != nil {
+						fmt.Println("Paxos:", err)
+					} else {
+						encoder := gob.NewEncoder(leaderCon)
+						message = clientMsg
+						encoder.Encode(&message)
+					}
 				}
-				acceptorChan <- clientMsg.Content
-			} else {
-				fmt.Println("Im not leader, sending it on!")
-				if clientMsg.RemoteAddress == "" {
-					clientMsg.RemoteAddress = Utils.GetIp(conn.RemoteAddr().String())
-				}
-				leaderService := leader.IP + ":1337"
-				fmt.Println(leaderService)
-				leaderCon, err := net.Dial("tcp", leaderService)
-				if err != nil {
-					fmt.Println("Paxos:", err)
+			case msg.ClientRequestNodes:
+				var clientMsg msg.ClientRequestNodes
+				clientMsg = message.(msg.ClientRequestNodes)
+				if leader.IP == me.IP {
+					tcp.SendPaxosMessage(clientMsg.RemoteAddress, msg.ClientResponseNodes{List: nodeList})
 				} else {
-					encoder := gob.NewEncoder(leaderCon)
-					message = clientMsg
-					encoder.Encode(&message)
+					fmt.Println("Im not leader, sending it on!")
+					if clientMsg.RemoteAddress == "" {
+						clientMsg.RemoteAddress = Utils.GetIp(conn.RemoteAddr().String())
+					}
+					leaderService := leader.IP + ":1337"
+					fmt.Println(leaderService)
+					leaderCon, err := net.Dial("tcp", leaderService)
+					if err != nil {
+						fmt.Println("Paxos:", err)
+					} else {
+						encoder := gob.NewEncoder(leaderCon)
+						message = clientMsg
+						encoder.Encode(&message)
+					}
 				}
 			}
 		} else {

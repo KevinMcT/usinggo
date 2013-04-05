@@ -50,7 +50,7 @@ func waitForLearns() {
 	for {
 		<-waitLearnChan
 		waiting = true
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		waiting = false
 		for _, v := range learnList {
 			if v.ROUND >= r {
