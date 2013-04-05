@@ -3,12 +3,12 @@ package px
 import (
 	//"encoding/gob"
 	"fmt"
-	//"lab5Merge/model/RoundVar"
+	"lab5Merge/model/RoundVar"
 	"lab5Merge/model/SlotList"
 	"lab5Merge/model/net/msg"
-	//"lab5Merge/model/net/tcp"
+	"lab5Merge/model/net/tcp"
 	//"net"
-	//"strings"
+	"strings"
 	"time"
 )
 
@@ -38,6 +38,7 @@ func receivedLearn() {
 		}
 		learnMsg := learn.Message.(msg.Learn)
 		learnList = append(learnList, learnMsg)
+
 	}
 }
 
@@ -50,25 +51,26 @@ func waitForLearns() {
 	for {
 		<-waitLearnChan
 		waiting = true
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(15 * time.Millisecond)
 		waiting = false
+		fmt.Println(learnList)
 		for _, v := range learnList {
 			if v.ROUND >= r {
-				/*if strings.EqualFold(value, "-1") {
+				if strings.EqualFold(value, "-1") {
 					value = v.VALUE
 					r = v.ROUND
 					msgNr = v.MSGNUMBER
 					learns = learns + 1
 				} else if strings.EqualFold(v.VALUE, value) && r == v.ROUND && msgNr == v.MSGNUMBER {
 					learns = learns + 1
-				}*/
-				var addedSlot = slots.Add(v, v.MSGNUMBER-1)
+				}
+				/*var addedSlot = slots.Add(v, v.MSGNUMBER-1)
 				if addedSlot {
 					fmt.Println("Wrote to slot: ", v)
-				}
+				}*/
 			}
 		}
-		/*if learns > (len(RoundVar.GetRound().List) / 2) {
+		if learns > (len(RoundVar.GetRound().List) / 2) {
 			var stringMessage = fmt.Sprintf("Learnt value %s round:%d messageNumber:%d ", value, r, msgNr)
 			learns = 0
 			value = "-1"
@@ -84,6 +86,6 @@ func waitForLearns() {
 
 		} else {
 			fmt.Println("Did not receive not enough learns, not learning anything!")
-		}*/
+		}
 	}
 }

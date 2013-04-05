@@ -146,6 +146,7 @@ func Paxos() {
 				}
 			case list := <-tcpNodeChan:
 				nodeList = list
+				RoundVar.GetRound().List = nodeList
 				endNodeListChan <- list
 			case <-timeout:
 				for _, v := range nodeList {
@@ -255,7 +256,6 @@ func holdReplicaConnection(conn net.Conn) {
 			case msg.ClientRequestMessage:
 				var clientMsg msg.ClientRequestMessage
 				clientMsg = message.(msg.ClientRequestMessage)
-				fmt.Println("ClientMessage: ", clientMsg)
 				if leader.IP == me.IP {
 					if clientMsg.RemoteAddress == "" {
 						RoundVar.GetRound().RespondClient = Utils.GetIp(conn.RemoteAddr().String())

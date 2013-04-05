@@ -64,7 +64,7 @@ func handlePush(ac chan string) {
 //paxos to be processed.
 func handleMessages() {
 	for {
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(25 * time.Millisecond)
 		//var msg = waitingMessages.messages.Pop()
 		var msg = wmessages.Next()
 		//fmt.Println("--Pop'ed message from queue")

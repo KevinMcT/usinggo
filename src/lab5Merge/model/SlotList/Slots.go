@@ -2,7 +2,7 @@ package SlotList
 
 import (
 	//"lab5Merge/model/net/msg"
-	"fmt"
+	//"fmt"
 	"sync"
 )
 
@@ -28,7 +28,7 @@ func (s *Slots) Add(message interface{}, slotNumber int) bool {
 		for i := s.SizeOfList; i < s.SizeOfList*2; i++ {
 			s.List = append(s.List, nil)
 		}
-		fmt.Println(s.List)
+		//fmt.Println(s.List)
 		return true
 	}
 	return false

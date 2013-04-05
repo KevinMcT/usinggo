@@ -40,6 +40,8 @@ func receivedAccept() {
 	for {
 		value := <-msg.AcceptChan
 		acceptMsg := value.Message.(msg.Accept)
+		fmt.Println(promisedRound)
+		fmt.Println(acceptMsg)
 		if acceptMsg.ROUND == promisedRound {
 			acceptedValue = acceptMsg.VALUE
 			msgNumber = acceptMsg.MSGNUMBER
