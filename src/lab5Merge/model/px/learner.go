@@ -13,19 +13,21 @@ import (
 )
 
 var (
-	learns        int
-	value         string
-	learnList     = make([]msg.Learn, 0)
-	r             int
-	msgNr         int
-	waitLearnChan = make(chan string, 1)
-	slots         = SlotList.NewSlots()
+	learns              int
+	value               string
+	learnList           = make([]msg.Learn, 0)
+	r                   int
+	msgNr               int
+	waitLearnChan       = make(chan string, 1)
+	slots               = SlotList.NewSlots()
+	lastLearntMsgNumber int
 )
 
 func Learner() {
 	fmt.Println("Learner up and waiting ...")
 	learns = 0
 	value = "-1"
+	lastLearntMsgNumber = -1
 	go receivedLearn()
 	go waitForLearns()
 }
@@ -73,6 +75,7 @@ func waitForLearns() {
 		if learns > (len(RoundVar.GetRound().List) / 2) {
 			var stringMessage = fmt.Sprintf("Learnt value %s round:%d messageNumber:%d ", value, r, msgNr)
 			learns = 0
+			lastLearntMsgNumber = msgNr
 			learnList = make([]msg.Learn, 0)
 			fmt.Println(stringMessage)
 			if RoundVar.GetRound().CurrentLeader.IP == self.IP {

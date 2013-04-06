@@ -85,6 +85,7 @@ func sendPrepare() {
 
 func actuallySendPrepare() {
 	nodeList = RoundVar.GetRound().List
+	RoundVar.GetRound().MessageNumber = lastLearntMsgNumber
 	for _, v := range nodeList {
 		sendAddress := v.IP + ":1338"
 		var prepare = msg.Prepare{ROUND: round}

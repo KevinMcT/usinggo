@@ -97,7 +97,7 @@ func sendToPaxos(st string, conn net.Conn, start int, end int) {
 	if allOk == false {
 		fmt.Println("Starting a new send from last learnt value!")
 		fmt.Println("Last confirmed message: ", lastConfirmedMsgNumber)
-		sendToPaxos(st, paxosConn, lastConfirmedMsgNumber-1, end)
+		sendToPaxos(st, paxosConn, lastConfirmedMsgNumber+1, end)
 	}
 }
 
