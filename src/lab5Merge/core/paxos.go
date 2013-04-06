@@ -69,6 +69,7 @@ func Paxos() {
 	}
 	fmt.Println("Electing first leader. . .")
 	leader = le.Elect(nodeList)
+	RoundVar.GetRound().CurrentLeader = leader
 	for i, v := range nodeList {
 		if v.IP == leader.IP {
 			nodeList[i].LEAD = true
@@ -86,7 +87,7 @@ func Paxos() {
 	go px.Acceptor()
 	go px.Learner()
 	go px.PaxosHandler()
-	go px.Proposer(leader, me, newNodesPaxos, acceptorChan)
+	go px.Proposer(me, newNodesPaxos, acceptorChan)
 
 	//Main program loop
 	for {
@@ -141,6 +142,11 @@ func Paxos() {
 				}
 				endNodeListChan <- nodeList
 				fmt.Println("--Elected ", leader, "as leader--")
+				RoundVar.GetRound().CurrentLeader = leader
+				//TODO Need to make this unique for each node, so node
+				//node can propose the same round.
+				RoundVar.GetRound().Round = RoundVar.GetRound().Round + 1
+				msg.RestartProposer <- "newLeader"
 				if me.IP == leader.IP {
 					go udp.Listen(udpListenChan)
 				}

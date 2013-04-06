@@ -9,18 +9,21 @@ import (
 )
 
 var (
-	lastAcceptedValue string
-	lastAcceptedRound int
-	promisedRound     int
-	acceptedValue     string
-	hasAccepted       bool
-	msgNumber         int
+	lastAcceptedValue     string
+	lastAcceptedRound     int
+	lastAccpetedMsgNumber int
+
+	promisedRound int
+	acceptedValue string
+	hasAccepted   bool
+	msgNumber     int
 )
 
 func Acceptor() {
 	fmt.Println("Proposer up and waiting ...")
 	acceptedValue = "-1"
 	lastAcceptedRound = -1
+	lastAccpetedMsgNumber = -1
 	lastAcceptedValue = "-1"
 	promisedRound = 0
 	msgNumber = 0
@@ -47,6 +50,7 @@ func receivedAccept() {
 			msgNumber = acceptMsg.MSGNUMBER
 			lastAcceptedValue = acceptedValue
 			lastAcceptedRound = promisedRound
+			lastAccpetedMsgNumber = acceptMsg.MSGNUMBER
 			sendLearn(value.Ip)
 		} else {
 			fmt.Println("Wrong round number bitch!")

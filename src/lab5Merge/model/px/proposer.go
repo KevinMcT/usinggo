@@ -18,7 +18,6 @@ import (
 }*/
 
 var (
-	leader         node.T_Node
 	self           node.T_Node
 	nodeList       = make([]node.T_Node, 0)
 	round          int
@@ -30,25 +29,24 @@ var (
 	wmessages      = FifoList.NewQueue()
 )
 
-func init() {
-	//waitingMessages = new(WaitingMessages)
-	//waitingMessages.messages = FifoList.NewFifo()
-}
-
-func Proposer(led node.T_Node, me node.T_Node, nc chan node.T_Node, ac chan string) {
+func Proposer(me node.T_Node, nc chan node.T_Node, ac chan string) {
 	round = RoundVar.GetRound().Round
-	leader = led
 	self = me
 	waiting = false
 	quorumPromise = false
 	go receviedPromise()
 	go waitForPromise()
-	if led.IP == me.IP {
-		//fmt.Println(leader)
-		//fmt.Println(self)
-		go sendPrepare()
-		go handlePush(ac)
-		go handleMessages()
+	go handlePush(ac)
+	go handleMessages()
+	if RoundVar.GetRound().CurrentLeader.IP == me.IP {
+		sendPrepare()
+	}
+	for {
+		<-msg.RestartProposer
+		if RoundVar.GetRound().CurrentLeader.IP == me.IP {
+			round = RoundVar.GetRound().Round
+			actuallySendPrepare()
+		}
 	}
 
 }
@@ -82,6 +80,10 @@ func sendPrepare() {
 	<-msg.SendPrepareChan
 	fmt.Println("sending prepare!")
 	quorumPromise = true
+	actuallySendPrepare()
+}
+
+func actuallySendPrepare() {
 	nodeList = RoundVar.GetRound().List
 	for _, v := range nodeList {
 		sendAddress := v.IP + ":1338"

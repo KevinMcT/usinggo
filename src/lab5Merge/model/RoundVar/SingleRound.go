@@ -9,6 +9,7 @@ type roundSingle struct {
 	MessageNumber int
 	RespondClient string
 	List          []node.T_Node
+	CurrentLeader node.T_Node
 }
 
 var instantiated *roundSingle = nil

@@ -64,7 +64,7 @@ func ConnectToPaxos() {
 }
 
 func sendToPaxos(st string, conn net.Conn) {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 200; i++ {
 		encoder := gob.NewEncoder(conn)
 		var stringMessage = fmt.Sprintf("%s%d", st, i)
 		var sendMsg = msg.ClientRequestMessage{Content: stringMessage}

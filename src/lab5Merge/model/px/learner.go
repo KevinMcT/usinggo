@@ -76,7 +76,7 @@ func waitForLearns() {
 			value = "-1"
 			learnList = make([]msg.Learn, 0)
 			fmt.Println(stringMessage)
-			if leader.IP == self.IP {
+			if RoundVar.GetRound().CurrentLeader.IP == self.IP {
 				sendAddress := RoundVar.GetRound().RespondClient + ":1337"
 				var prepare = msg.ClientResponseMessage{Content: stringMessage}
 				var message interface{}

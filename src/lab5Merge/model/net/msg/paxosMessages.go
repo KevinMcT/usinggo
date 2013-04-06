@@ -9,6 +9,7 @@ var (
 	AcceptChan      chan Wrapper
 	PrepareChan     chan Wrapper
 	PromiseChan     chan Wrapper
+	RestartProposer chan string
 	SendPrepareChan chan bool
 )
 
@@ -22,6 +23,7 @@ func init() {
 	PrepareChan = make(chan Wrapper, 10)
 	PromiseChan = make(chan Wrapper, 10)
 	SendPrepareChan = make(chan bool, 10)
+	RestartProposer = make(chan string, 10)
 }
 
 type Wrapper struct {
