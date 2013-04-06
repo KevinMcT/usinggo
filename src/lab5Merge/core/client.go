@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	serverList []node.T_Node
-	sendAll    bool
-	sentChan   = make(chan int, 1)
+	serverList   []node.T_Node
+	sendAll      bool
+	sentChan     = make(chan int, 1)
+	paxosAddress string
 )
 
 /*
@@ -38,7 +39,8 @@ func ConnectToPaxos() {
 		fmt.Println("Connecting to Paxos replica")
 		service := ip + ":1337"
 		fmt.Println(service)
-		conn, err := net.Dial("tcp", service)
+		paxosAddress = service
+		conn, err := net.Dial("tcp", paxosAddress)
 		fmt.Println("Waiting for servers... This might take up to 5 seconds, but you can still send a message")
 		go GetServers(conn, GetIP())
 		if err == nil {
@@ -64,13 +66,27 @@ func ConnectToPaxos() {
 }
 
 func sendToPaxos(st string, conn net.Conn) {
-	for i := 0; i < 200; i++ {
-		encoder := gob.NewEncoder(conn)
+	var paxosConn = conn
+	for i := 0; i < 300; i++ {
+		encoder := gob.NewEncoder(paxosConn)
 		var stringMessage = fmt.Sprintf("%s%d", st, i)
 		var sendMsg = msg.ClientRequestMessage{Content: stringMessage}
 		var message interface{}
 		message = sendMsg
-		encoder.Encode(&message)
+		var err = encoder.Encode(&message)
+		if err != nil {
+			var address = getNewPaxosAddress(Utils.GetIp(conn.RemoteAddr().String()))
+			address = address + ":1337"
+			paxosAddress = address
+			time.Sleep(1000 * time.Millisecond)
+			newConn, _ := net.Dial("tcp", paxosAddress)
+			paxosConn = newConn
+			newEncoder := gob.NewEncoder(paxosConn)
+			var newMessage interface{}
+			var ns = msg.ClientRequestMessage{Content: stringMessage}
+			newMessage = ns
+			newEncoder.Encode(&newMessage)
+		}
 		if sendAll == false {
 			<-sentChan
 		}
@@ -89,6 +105,19 @@ func waitForResponse() {
 		conn, _ := listener.Accept()
 		go holdClientConnection(conn)
 	}
+}
+
+func getNewPaxosAddress(failedAddress string) string {
+	var newAddress string
+	for _, v := range serverList {
+		if v.IP != failedAddress {
+			newAddress = v.IP
+			break
+		}
+	}
+	fmt.Println("Old address to paxos: ", failedAddress)
+	fmt.Println("New address to paxos is: ", newAddress)
+	return newAddress
 }
 
 func holdClientConnection(conn net.Conn) {
