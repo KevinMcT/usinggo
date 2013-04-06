@@ -16,6 +16,9 @@ var (
 	sendAll      bool
 	sentChan     = make(chan int, 1)
 	paxosAddress string
+
+	lastConfirmedValue     string
+	lastConfirmedMsgNumber int
 )
 
 /*
@@ -30,7 +33,6 @@ func Client() {
 }
 
 func ConnectToPaxos() {
-
 	for {
 		fmt.Println("Enter ip to connecto to")
 		var ip string
@@ -42,6 +44,8 @@ func ConnectToPaxos() {
 		paxosAddress = service
 		conn, err := net.Dial("tcp", paxosAddress)
 		fmt.Println("Waiting for servers... This might take up to 5 seconds, but you can still send a message")
+		lastConfirmedValue = ""
+		lastConfirmedMsgNumber = -1
 		go GetServers(conn, GetIP())
 		if err == nil {
 			fmt.Println("Enter a value to send")
@@ -52,11 +56,11 @@ func ConnectToPaxos() {
 			fmt.Scanf("%s", &all)
 			if all == "Y" || all == "y" || all == "yes" {
 				sendAll = false
-				sendToPaxos(st, conn)
+				sendToPaxos(st, conn, 0, 300)
 			}
 			if all == "N" || all == "n" || all == "no" {
 				sendAll = true
-				sendToPaxos(st, conn)
+				sendToPaxos(st, conn, 0, 300)
 			}
 
 		} else {
@@ -65,9 +69,10 @@ func ConnectToPaxos() {
 	}
 }
 
-func sendToPaxos(st string, conn net.Conn) {
+func sendToPaxos(st string, conn net.Conn, start int, end int) {
 	var paxosConn = conn
-	for i := 0; i < 300; i++ {
+	var allOk = true
+	for i := start; i < end; i++ {
 		encoder := gob.NewEncoder(paxosConn)
 		var stringMessage = fmt.Sprintf("%s%d", st, i)
 		var sendMsg = msg.ClientRequestMessage{Content: stringMessage}
@@ -81,16 +86,18 @@ func sendToPaxos(st string, conn net.Conn) {
 			time.Sleep(1000 * time.Millisecond)
 			newConn, _ := net.Dial("tcp", paxosAddress)
 			paxosConn = newConn
-			newEncoder := gob.NewEncoder(paxosConn)
-			var newMessage interface{}
-			var ns = msg.ClientRequestMessage{Content: stringMessage}
-			newMessage = ns
-			newEncoder.Encode(&newMessage)
+			allOk = false
+			break
 		}
 		if sendAll == false {
 			<-sentChan
 		}
 		time.Sleep(10 * time.Millisecond)
+	}
+	if allOk == false {
+		fmt.Println("Starting a new send from last learnt value!")
+		fmt.Println("Last confirmed message: ", lastConfirmedMsgNumber)
+		sendToPaxos(st, paxosConn, lastConfirmedMsgNumber-1, end)
 	}
 }
 
@@ -115,8 +122,6 @@ func getNewPaxosAddress(failedAddress string) string {
 			break
 		}
 	}
-	fmt.Println("Old address to paxos: ", failedAddress)
-	fmt.Println("New address to paxos is: ", newAddress)
 	return newAddress
 }
 
@@ -134,8 +139,11 @@ func holdClientConnection(conn net.Conn) {
 			if message != nil {
 				var clientMsg msg.ClientResponseMessage
 				clientMsg = message.(msg.ClientResponseMessage)
+				lastConfirmedValue = clientMsg.Value
+				lastConfirmedMsgNumber = clientMsg.MsgNumber
+				var stringMessage = fmt.Sprintf("Learnt value %s round:%d messageNumber:%d", clientMsg.Value, clientMsg.Round, clientMsg.MsgNumber)
 				fmt.Println("---------------------------------------------------")
-				fmt.Println(clientMsg.Content)
+				fmt.Println(stringMessage)
 				fmt.Println("---------------------------------------------------")
 				if sendAll == false {
 					sentChan <- 1

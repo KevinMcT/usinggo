@@ -82,7 +82,9 @@ type ClientRequestMessage struct {
 }
 
 type ClientResponseMessage struct {
-	Content string
+	Round     int
+	MsgNumber int
+	Value     string
 }
 
 type ClientRequestNodes struct {

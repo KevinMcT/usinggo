@@ -73,17 +73,16 @@ func waitForLearns() {
 		if learns > (len(RoundVar.GetRound().List) / 2) {
 			var stringMessage = fmt.Sprintf("Learnt value %s round:%d messageNumber:%d ", value, r, msgNr)
 			learns = 0
-			value = "-1"
 			learnList = make([]msg.Learn, 0)
 			fmt.Println(stringMessage)
 			if RoundVar.GetRound().CurrentLeader.IP == self.IP {
 				sendAddress := RoundVar.GetRound().RespondClient + ":1337"
-				var prepare = msg.ClientResponseMessage{Content: stringMessage}
+				var prepare = msg.ClientResponseMessage{Value: value, Round: r, MsgNumber: msgNr}
 				var message interface{}
 				message = prepare
 				tcp.SendPaxosMessage(sendAddress, message)
 			}
-
+			value = "-1"
 		} else {
 			fmt.Println("Did not receive not enough learns, not learning anything!")
 		}
