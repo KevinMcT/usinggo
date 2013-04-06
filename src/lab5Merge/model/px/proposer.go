@@ -12,11 +12,6 @@ import (
 	"time"
 )
 
-/*type WaitingMessages struct {
-	mu       sync.Mutex
-	messages *FifoList.Fifo
-}*/
-
 var (
 	self           node.T_Node
 	nodeList       = make([]node.T_Node, 0)
@@ -86,6 +81,7 @@ func sendPrepare() {
 func actuallySendPrepare() {
 	nodeList = RoundVar.GetRound().List
 	RoundVar.GetRound().MessageNumber = lastLearntMsgNumber
+	fmt.Println(RoundVar.GetRound().MessageNumber)
 	for _, v := range nodeList {
 		sendAddress := v.IP + ":1338"
 		var prepare = msg.Prepare{ROUND: round}
@@ -169,19 +165,3 @@ func pickValueFromProposeList() {
 	sendAccept()
 	promiseList = make([]msg.Promise, 0)
 }
-
-//Method for adding a incoming message from the client to the que of 
-//waiting messages. 
-/*func addMessageToQue(msg string) {
-	waitingMessages.mu.Lock()
-	waitingMessages.messages.Push(msg)
-	waitingMessages.mu.Unlock()
-}
-
-//Message to get the last message from the que of waiting messages
-func getNextMessageFromQue() string {
-	waitingMessages.mu.Lock()
-	var msg = waitingMessages.messages.Pop()
-	waitingMessages.mu.Unlock()
-	return msg
-}*/

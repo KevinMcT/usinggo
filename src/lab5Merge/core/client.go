@@ -90,7 +90,25 @@ func sendToPaxos(st string, conn net.Conn, start int, end int) {
 			break
 		}
 		if sendAll == false {
-			<-sentChan
+			timeout := make(chan bool, 1)
+			go func() {
+				time.Sleep(1000 * time.Millisecond)
+				timeout <- true
+			}()
+			select {
+			case <-sentChan:
+				//Don`t do anything here				
+			case <-timeout:
+				fmt.Println("No reply on message from connection, finding a new one!")
+				var address = getNewPaxosAddress(Utils.GetIp(conn.RemoteAddr().String()))
+				address = address + ":1337"
+				paxosAddress = address
+				time.Sleep(1000 * time.Millisecond)
+				newConn, _ := net.Dial("tcp", paxosAddress)
+				paxosConn = newConn
+				allOk = false
+				break
+			}
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
