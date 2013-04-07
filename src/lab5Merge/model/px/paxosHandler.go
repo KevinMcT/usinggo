@@ -22,7 +22,7 @@ func PaxosHandler() {
 }
 
 func HandlePaxosMessages() {
-	fmt.Println("Paxos handler up!")
+	fmt.Println("--Paxos handler up!--")
 	service := "0.0.0.0:1338"
 	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	Utils.CheckError(err)
@@ -62,6 +62,4 @@ func holdConnection(conn net.Conn) {
 		}
 	}
 	//tcp.StoreDecoder(conn, *decoder)
-	fmt.Println("Connection died, letting it go")
-	fmt.Println(conn.RemoteAddr().String())
 }

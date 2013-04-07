@@ -28,7 +28,6 @@ func (s *Slots) Add(message interface{}, slotNumber int) bool {
 		for i := s.SizeOfList; i < s.SizeOfList*2; i++ {
 			s.List = append(s.List, nil)
 		}
-		//fmt.Println(s.List)
 		return true
 	}
 	return false

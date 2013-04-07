@@ -78,7 +78,7 @@ func Paxos() {
 	}
 	fmt.Println("--Elected ", leader, "as leader--")
 	fmt.Println("---------------------------------")
-	fmt.Println("Starting Failuredetect for all nodes. . . ")
+	fmt.Println("--Starting Failuredetect for all nodes. . . ")
 	go fd.Detect(me, leader, newLeaderChan, newNodeChan, suspectedChan, restoreChan, tcpHartbeatRequestChan, tcpHartbeatResponseChan, nodeList, endNodeListChan)
 	fmt.Println("--Done!--")
 
@@ -100,7 +100,7 @@ func Paxos() {
 			}()
 			select {
 			case suspectedNode := <-suspectedChan:
-				fmt.Println("Suspect on node: ", suspectedNode.IP)
+				fmt.Println("--Suspect on node: ", suspectedNode.IP, "--")
 				for i, v := range nodeList {
 					if v.IP == suspectedNode.IP {
 						nodeList[i].SUSPECTED = true
@@ -112,7 +112,7 @@ func Paxos() {
 					endNodeListChan <- nodeList
 				}
 			case restoredNode := <-restoreChan:
-				fmt.Println("Restore on node: ", restoredNode.IP)
+				fmt.Println("--Restore on node: ", restoredNode.IP, "--")
 				for i, v := range nodeList {
 					if v.IP == restoredNode.IP {
 						nodeList[i].SUSPECTED = false
@@ -197,7 +197,6 @@ func addNodesFromUdp(inputChan chan string) {
 			nodeList = append(nodeList, node)
 			RoundVar.GetRound().List = nodeList
 			if len(nodeList) > 2 && leader.IP == me.IP {
-				fmt.Println("Going to send prepare!!")
 				msg.SendPrepareChan <- true
 			}
 		}
@@ -226,7 +225,7 @@ leader of the paxos system he sends the message on to the proposer. If
 not the message is redirected to the node that is the leader.
 */
 func ClientConnection() {
-	fmt.Println("Waiting for inncoming clients")
+	fmt.Println("Waiting for inncoming clients. . . ")
 	service := "0.0.0.0:1337"
 	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	Utils.CheckError(err)
@@ -255,7 +254,7 @@ func holdReplicaConnection(conn net.Conn) {
 		var err = decoder.Decode(&message)
 		if err != nil {
 			connectionOK = false
-			fmt.Println("Error in Paxos: ", err)
+			fmt.Println("--Error in Paxos: ", err, "--")
 		}
 		if message != nil {
 			switch message.(type) {
@@ -270,15 +269,14 @@ func holdReplicaConnection(conn net.Conn) {
 					}
 					acceptorChan <- clientMsg.Content
 				} else {
-					fmt.Println("Im not leader, sending it on!")
+					fmt.Println("--Not leader. Relay message to: ", leader.IP, " --")
 					if clientMsg.RemoteAddress == "" {
 						clientMsg.RemoteAddress = Utils.GetIp(conn.RemoteAddr().String())
 					}
 					leaderService := leader.IP + ":1337"
-					fmt.Println(leaderService)
 					leaderCon, err := net.Dial("tcp", leaderService)
 					if err != nil {
-						fmt.Println("Paxos:", err)
+						fmt.Println("--Paxos:", err, "--")
 					} else {
 						encoder := gob.NewEncoder(leaderCon)
 						message = clientMsg
@@ -291,15 +289,14 @@ func holdReplicaConnection(conn net.Conn) {
 				if leader.IP == me.IP {
 					tcp.SendPaxosMessage(clientMsg.RemoteAddress, msg.ClientResponseNodes{List: nodeList})
 				} else {
-					fmt.Println("Im not leader, sending it on!")
+					fmt.Println("--Not leader. Relay message to: ", leader.IP, " --")
 					if clientMsg.RemoteAddress == "" {
 						clientMsg.RemoteAddress = Utils.GetIp(conn.RemoteAddr().String())
 					}
 					leaderService := leader.IP + ":1337"
-					fmt.Println(leaderService)
 					leaderCon, err := net.Dial("tcp", leaderService)
 					if err != nil {
-						fmt.Println("Paxos:", err)
+						fmt.Println("--Paxos:", err, "--")
 					} else {
 						encoder := gob.NewEncoder(leaderCon)
 						message = clientMsg
@@ -308,9 +305,8 @@ func holdReplicaConnection(conn net.Conn) {
 				}
 			}
 		} else {
-			fmt.Println("Sending empty messages stupid!")
+			fmt.Println("--Sending empty messages!--")
 		}
 	}
-	//tcp.StoreDecoder(conn, *decoder)
-	fmt.Println("Client closed connection, no more to share")
+	fmt.Println("--Client closed connection, no more to share--")
 }

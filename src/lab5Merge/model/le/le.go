@@ -4,14 +4,28 @@ import (
 	"lab5Merge/controller/node"
 )
 
-var ()
+/*
+	Will search all the nodes in the nodeList and select the oldest node
+	which is not suspected.
+	The age of the node is determined by the timestamp sent in the UDP Broadcast	
+*/
 
+/*
+	Public function
+	leadElect 	[]node.T_Node	 The systems node list
+	returns the oldest node
+*/
 func Elect(leadElect []node.T_Node) node.T_Node {
 	list := leadElect
 	old := findOldest(list)
 	return old
 }
 
+/*
+	Private function
+	list 	[]node.T_Node	 The list to be searched
+	returns the oldest node
+*/
 func findOldest(list []node.T_Node) node.T_Node {
 	var node node.T_Node
 	for i, v := range list {

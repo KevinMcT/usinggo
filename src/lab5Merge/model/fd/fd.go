@@ -12,12 +12,32 @@ var (
 	delay int
 )
 
+/*
+	Sends hartbeats to all the nodes in the nodelist. If the response takes to long to arrive the
+	TCP class will throw an error, which is caught here. This will result in the node being marked as suspected.
+*/
+
+/*
+	Public function
+	Should be run as go-routine
+	me 					node.T_Node 				This node
+	lead 				node.T_Node 				System leader
+	newLead				chan node.T_Node			If new leader, this channel handles it
+	newNodeChan			chan node.T_Node			When a new node is detected it should be added on this channel
+	suspectedChan		chan node.T_Node			If a node is suspected, it will be sent on this channel
+	restoreChan			chan node.T_Node			If a node is restored, it will be sent on this channel
+	tcpRequestChan		chan msg.HARTBEATREQUEST	TCP class will send the request on this channel. The slaves reads it and sends a tcp response
+	tcpResponseChan		chan msg.HARTBEATRESPONSE	Is not used to other than empty the buffer of the tcp recieve.		
+	startList			[]node.T_Node				The list the system has on startup
+	endList				chan []node.T_Node			Upon update of the entire list, it will be sent on this channel.
+*/
+
 func Detect(me node.T_Node, lead node.T_Node, newLead chan node.T_Node, newNodeChan chan node.T_Node, suspectedChan chan node.T_Node, restoreChan chan node.T_Node, tcpRequestChan chan msg.HARTBEATREQUEST, tcpResponseChan chan msg.HARTBEATRESPONSE, startList []node.T_Node, endList chan []node.T_Node) {
 	var ticker = time.NewTicker(50 * time.Millisecond)
 	var nodeList = startList
 	var newNode node.T_Node
 	var newL node.T_Node
-	go GetResponse(tcpResponseChan)
+	go getResponse(tcpResponseChan)
 	for {
 		time.Sleep(1 * time.Millisecond)
 		if me.IP == lead.IP {
@@ -26,12 +46,10 @@ func Detect(me node.T_Node, lead node.T_Node, newLead chan node.T_Node, newNodeC
 					err := tcp.Send(v.IP, msg.HARTBEATREQUEST{IP: lead.IP})
 					time.Sleep(5 * time.Millisecond)
 					if err != nil && nodeList[i].SUSPECTED != true {
-						fmt.Println("FD: suspect...")
 						nodeList[i].SUSPECTED = true
 						suspectedChan <- nodeList[i]
 					}
 					if err == nil && nodeList[i].SUSPECTED == true {
-						fmt.Println("FD: restore...")
 						nodeList[i].SUSPECTED = false
 					}
 					time.Sleep(1 * time.Millisecond)
@@ -59,10 +77,10 @@ func Detect(me node.T_Node, lead node.T_Node, newLead chan node.T_Node, newNodeC
 		}()
 		select {
 		case newNode = <-newNodeChan:
-			nodeList = AppendIfMissing(nodeList, newNode)
+			nodeList = appendIfMissing(nodeList, newNode)
 		case <-timeout:
 		case newL = <-newLead:
-			fmt.Println("New leader detected in FD:", newL)
+			fmt.Println("--New leader detected in FD:", newL, "--")
 			lead = newL
 		case list := <-endList:
 			nodeList = list
@@ -70,7 +88,14 @@ func Detect(me node.T_Node, lead node.T_Node, newLead chan node.T_Node, newNodeC
 		<-ticker.C
 	}
 }
-func AppendIfMissing(slice []node.T_Node, i node.T_Node) []node.T_Node {
+
+/*
+	Private function
+	slice 		[]node.T_Node 	List to be checked
+	i 			node.T_Node 	Element to be added
+	returns 	[]node.T_Node 	The new list
+*/
+func appendIfMissing(slice []node.T_Node, i node.T_Node) []node.T_Node {
 	for j, ele := range slice {
 		if ele.IP == i.IP {
 			slice[j].TIME = i.TIME
@@ -80,9 +105,12 @@ func AppendIfMissing(slice []node.T_Node, i node.T_Node) []node.T_Node {
 	return append(slice, i)
 }
 
-func GetResponse(tcpResponseChan chan msg.HARTBEATRESPONSE) {
+/*
+	Private function
+	tcpResponseChan chan msg.HARTBEATRESPONSE Channel to empty
+*/
+func getResponse(tcpResponseChan chan msg.HARTBEATRESPONSE) {
 	for {
 		<-tcpResponseChan
-		//fmt.Println("Got response....")
 	}
 }

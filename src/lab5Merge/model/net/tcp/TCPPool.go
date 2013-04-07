@@ -16,7 +16,7 @@ type pool struct {
 var instantiated *pool = nil
 
 func init() {
-	fmt.Println("Initating TCP pool!")
+	fmt.Println("--Initating TCP pool--")
 	instantiated = new(pool)
 	instantiated.nConns = 0
 	instantiated.freeConnections = make([]net.Conn, 0)
@@ -55,11 +55,9 @@ func Dial(url string) net.Conn {
 	if conn == nil {
 		conn, err := net.Dial("tcp", url)
 		if err != nil {
-			fmt.Println("Error creating connection in TCPPool!!!!!")
-			fmt.Println(err)
+			fmt.Println("--Error creating connection in TCPPool:", err, "--")
 		}
 		instantiated.nConns = instantiated.nConns + 1
-		//fmt.Println("Total created connections: ", instantiated.nConns)
 		return conn
 	}
 	return conn

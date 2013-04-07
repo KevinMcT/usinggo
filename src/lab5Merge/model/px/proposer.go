@@ -58,9 +58,7 @@ func handlePush(ac chan string) {
 func handleMessages() {
 	for {
 		time.Sleep(25 * time.Millisecond)
-		//var msg = waitingMessages.messages.Pop()
 		var msg = wmessages.Next()
-		//fmt.Println("--Pop'ed message from queue")
 		if msg != nil {
 			clientValue = msg.(string)
 			if quorumPromise == true {
@@ -73,7 +71,6 @@ func handleMessages() {
 
 func sendPrepare() {
 	<-msg.SendPrepareChan
-	fmt.Println("sending prepare!")
 	quorumPromise = true
 	actuallySendPrepare()
 }
@@ -81,7 +78,6 @@ func sendPrepare() {
 func actuallySendPrepare() {
 	nodeList = RoundVar.GetRound().List
 	RoundVar.GetRound().MessageNumber = lastLearntMsgNumber
-	fmt.Println(RoundVar.GetRound().MessageNumber)
 	for _, v := range nodeList {
 		sendAddress := v.IP + ":1338"
 		var prepare = msg.Prepare{ROUND: round}
@@ -161,7 +157,7 @@ func pickValueFromProposeList() {
 	}
 	clientValue = largestRoundValue
 	var stringMessage = fmt.Sprintf("Sending accept with value %s for round:%d messageNumber:%d ", clientValue, round, RoundVar.GetRound().MessageNumber)
-	fmt.Println(stringMessage)
+	fmt.Println("--", stringMessage, "--")
 	sendAccept()
 	promiseList = make([]msg.Promise, 0)
 }

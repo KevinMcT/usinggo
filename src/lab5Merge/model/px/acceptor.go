@@ -20,7 +20,7 @@ var (
 )
 
 func Acceptor() {
-	fmt.Println("Proposer up and waiting ...")
+	fmt.Println("--Proposer up and waiting ...")
 	acceptedValue = "-1"
 	lastAcceptedRound = -1
 	lastAccpetedMsgNumber = -1
@@ -43,8 +43,8 @@ func receivedAccept() {
 	for {
 		value := <-msg.AcceptChan
 		acceptMsg := value.Message.(msg.Accept)
-		fmt.Println(promisedRound)
-		fmt.Println(acceptMsg)
+		/*fmt.Println(promisedRound)
+		fmt.Println(acceptMsg)*/
 		if acceptMsg.ROUND == promisedRound {
 			acceptedValue = acceptMsg.VALUE
 			msgNumber = acceptMsg.MSGNUMBER
@@ -53,8 +53,7 @@ func receivedAccept() {
 			lastAccpetedMsgNumber = acceptMsg.MSGNUMBER
 			sendLearn(value.Ip)
 		} else {
-			fmt.Println("Wrong round number bitch!")
-			fmt.Println(acceptMsg.ROUND)
+			fmt.Println("--Error in number--")
 		}
 	}
 }
@@ -73,7 +72,7 @@ func sendLearn(address string) {
 func sendPromise(address string) {
 	address = address + ":1338"
 	RoundVar.GetRound().Round = promisedRound
-	fmt.Println("Promised to round: ", promisedRound)
+	fmt.Println("--Promised to round: ", promisedRound, "--")
 	var promise = msg.Promise{ROUND: promisedRound, LASTACCEPTEDROUND: lastAcceptedRound, LASTACCEPTEDVALUE: lastAcceptedValue}
 	var message interface{}
 	message = promise

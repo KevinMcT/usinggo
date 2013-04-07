@@ -29,11 +29,10 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 		for {
 			conn, err = listener.AcceptTCP()
 			if err != nil {
-				fmt.Println("Error in TCP", err)
+				fmt.Println("--Error in TCP", err, "--")
 				conn.Close()
 				listener.Close()
 				err = nil
-				fmt.Println("Break")
 				break
 			}
 			decoder := gob.NewDecoder(conn)
@@ -64,7 +63,7 @@ func Listen(nodeChan chan []node.T_Node, tcpLeaderRequestChan chan node.T_Node, 
 			}
 		}
 		leaderDown <- 1
-		fmt.Println("Sent leader down channel")
+		fmt.Println("--Sent leader down channel--")
 	}
 }
 
@@ -84,17 +83,16 @@ func Send(ip string, msg interface{}) error {
 func SendPaxosMessage(address string, message interface{}) {
 	conn := Dial(address)
 	if conn != nil {
-		//encoder := gob.NewEncoder(conn)
 		encoder := GetEncoder(address)
 		var err = encoder.Encode(&message)
 		if err != nil {
-			fmt.Println("TCP Paxos message: Encoding failed!!: ", err)
+			fmt.Println("--TCP Paxos message: Encoding failed!!: ", err, "--")
 		} else {
 			Close(conn)
 			StoreEncoder(conn, *encoder)
 		}
 	} else {
-		fmt.Println("Cannot send message to node")
+		fmt.Println("--Cannot send message to node--")
 	}
 }
 

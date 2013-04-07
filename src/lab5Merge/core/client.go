@@ -51,20 +51,23 @@ func ConnectToPaxos() {
 			fmt.Println("Enter a value to send")
 			var st string
 			fmt.Scanf("%s", &st)
+			var nr int
+			fmt.Println("Enter number of messages")
+			fmt.Scanf("%d", &nr)
 			var all string
 			fmt.Println("Wait for response before sending new message? Y/N")
 			fmt.Scanf("%s", &all)
 			if all == "Y" || all == "y" || all == "yes" {
 				sendAll = false
-				sendToPaxos(st, conn, 0, 300)
+				sendToPaxos(st, conn, 0, nr)
 			}
 			if all == "N" || all == "n" || all == "no" {
 				sendAll = true
-				sendToPaxos(st, conn, 0, 300)
+				sendToPaxos(st, conn, 0, nr)
 			}
 
 		} else {
-			fmt.Println("Seems like the node you are trying to connect is gone down or does not exist. Please try another address")
+			fmt.Println("--Seems like the node you are trying to connect is gone down or does not exist. Please try another address--")
 		}
 	}
 }
@@ -72,6 +75,7 @@ func ConnectToPaxos() {
 func sendToPaxos(st string, conn net.Conn, start int, end int) {
 	var paxosConn = conn
 	var allOk = true
+L:
 	for i := start; i < end; i++ {
 		encoder := gob.NewEncoder(paxosConn)
 		var stringMessage = fmt.Sprintf("%s%d", st, i)
@@ -99,7 +103,7 @@ func sendToPaxos(st string, conn net.Conn, start int, end int) {
 			case <-sentChan:
 				//Don`t do anything here				
 			case <-timeout:
-				fmt.Println("No reply on message from connection, finding a new one!")
+				fmt.Println("--No reply on message from connection, finding a new one!--")
 				var address = getNewPaxosAddress(Utils.GetIp(conn.RemoteAddr().String()))
 				address = address + ":1337"
 				paxosAddress = address
@@ -120,7 +124,6 @@ func sendToPaxos(st string, conn net.Conn, start int, end int) {
 }
 
 func waitForResponse() {
-	fmt.Println("Waiting for request responses")
 	service := "0.0.0.0:1337"
 	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	Utils.CheckError(err)

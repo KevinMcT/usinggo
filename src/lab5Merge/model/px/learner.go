@@ -24,7 +24,7 @@ var (
 )
 
 func Learner() {
-	fmt.Println("Learner up and waiting ...")
+	fmt.Println("--Learner up and waiting ...")
 	learns = 0
 	value = "-1"
 	lastLearntMsgNumber = -1
@@ -55,7 +55,6 @@ func waitForLearns() {
 		waiting = true
 		time.Sleep(15 * time.Millisecond)
 		waiting = false
-		fmt.Println(learnList)
 		for _, v := range learnList {
 			if v.ROUND >= r {
 				if strings.EqualFold(value, "-1") {
@@ -77,7 +76,7 @@ func waitForLearns() {
 			learns = 0
 			lastLearntMsgNumber = msgNr
 			learnList = make([]msg.Learn, 0)
-			fmt.Println(stringMessage)
+			fmt.Println("--", stringMessage, "--")
 			if RoundVar.GetRound().CurrentLeader.IP == self.IP {
 				sendAddress := RoundVar.GetRound().RespondClient + ":1337"
 				var prepare = msg.ClientResponseMessage{Value: value, Round: r, MsgNumber: msgNr}
@@ -87,7 +86,7 @@ func waitForLearns() {
 			}
 			value = "-1"
 		} else {
-			fmt.Println("Did not receive not enough learns, not learning anything!")
+			fmt.Println("--Did not receive not enough learns, not learning anything!--")
 		}
 	}
 }
