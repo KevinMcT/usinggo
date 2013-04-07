@@ -1,14 +1,12 @@
 package px
 
 import (
-	//"encoding/gob"
 	"fmt"
-	"lab5Merge/controller/node"
-	"lab5Merge/model/FifoList"
-	"lab5Merge/model/RoundVar"
-	"lab5Merge/model/net/msg"
-	"lab5Merge/model/net/tcp"
-	//"sync"
+	"lab5/controller/node"
+	"lab5/model/FifoList"
+	"lab5/model/RoundVar"
+	"lab5/model/net/msg"
+	"lab5/model/net/tcp"
 	"time"
 )
 

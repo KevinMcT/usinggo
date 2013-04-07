@@ -3,9 +3,9 @@ package core
 import (
 	"encoding/gob"
 	"fmt"
-	"lab5Merge/Utils"
-	"lab5Merge/controller/node"
-	"lab5Merge/model/net/msg"
+	"lab5/Utils"
+	"lab5/controller/node"
+	"lab5/model/net/msg"
 	"net"
 	"os"
 	"time"

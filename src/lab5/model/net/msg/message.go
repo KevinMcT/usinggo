@@ -2,7 +2,7 @@ package msg
 
 import (
 	"encoding/gob"
-	"lab5Merge/controller/node"
+	"lab5/controller/node"
 	"time"
 )
 

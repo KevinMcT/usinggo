@@ -1,13 +1,11 @@
 package px
 
 import (
-	//"encoding/gob"
 	"fmt"
-	"lab5Merge/model/RoundVar"
-	"lab5Merge/model/SlotList"
-	"lab5Merge/model/net/msg"
-	"lab5Merge/model/net/tcp"
-	//"net"
+	"lab5/model/RoundVar"
+	"lab5/model/SlotList"
+	"lab5/model/net/msg"
+	"lab5/model/net/tcp"
 	"strings"
 	"time"
 )

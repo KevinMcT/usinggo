@@ -2,9 +2,9 @@ package fd
 
 import (
 	"fmt"
-	"lab5Merge/controller/node"
-	"lab5Merge/model/net/msg"
-	"lab5Merge/model/net/tcp"
+	"lab5/controller/node"
+	"lab5/model/net/msg"
+	"lab5/model/net/tcp"
 	"time"
 )
 

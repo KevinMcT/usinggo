@@ -1,8 +1,6 @@
 package SlotList
 
 import (
-	//"lab5Merge/model/net/msg"
-	//"fmt"
 	"sync"
 )
 

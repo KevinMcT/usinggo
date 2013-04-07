@@ -3,8 +3,8 @@ package tcp
 import (
 	"encoding/gob"
 	"fmt"
-	"lab5Merge/controller/node"
-	"lab5Merge/model/net/msg"
+	"lab5/controller/node"
+	"lab5/model/net/msg"
 	"net"
 	"time"
 )

@@ -1,7 +1,7 @@
 package le
 
 import (
-	"lab5Merge/controller/node"
+	"lab5/controller/node"
 )
 
 /*

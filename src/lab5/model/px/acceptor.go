@@ -3,9 +3,9 @@ package px
 import (
 	//"encoding/gob"
 	"fmt"
-	"lab5Merge/model/RoundVar"
-	"lab5Merge/model/net/msg"
-	"lab5Merge/model/net/tcp"
+	"lab5/model/RoundVar"
+	"lab5/model/net/msg"
+	"lab5/model/net/tcp"
 )
 
 var (

@@ -3,7 +3,7 @@ package tcp
 import (
 	"encoding/gob"
 	"fmt"
-	"lab5Merge/Utils"
+	"lab5/Utils"
 	"net"
 )
 
