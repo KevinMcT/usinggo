@@ -91,7 +91,7 @@ L:
 			newConn, _ := net.Dial("tcp", paxosAddress)
 			paxosConn = newConn
 			allOk = false
-			break
+			break L
 		}
 		if sendAll == false {
 			timeout := make(chan bool, 1)
@@ -111,7 +111,7 @@ L:
 				newConn, _ := net.Dial("tcp", paxosAddress)
 				paxosConn = newConn
 				allOk = false
-				break
+				break L
 			}
 		}
 		time.Sleep(10 * time.Millisecond)
