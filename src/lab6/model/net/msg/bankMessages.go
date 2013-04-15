@@ -13,7 +13,7 @@ type Withdraw struct {
 type Transfer struct {
 	FromAccount string
 	ToAccount   string
-	amount      int
+	Amount      int
 }
 
 type Balance struct {

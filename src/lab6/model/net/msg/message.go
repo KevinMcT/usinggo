@@ -77,7 +77,7 @@ type TIMEOUT struct {
 }
 
 type ClientRequestMessage struct {
-	Content       string
+	Content       interface{}
 	RemoteAddress string
 }
 

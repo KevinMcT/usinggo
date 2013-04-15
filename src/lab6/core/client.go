@@ -3,9 +3,9 @@ package core
 import (
 	"encoding/gob"
 	"fmt"
-	"lab5/Utils"
-	"lab5/controller/node"
-	"lab5/model/net/msg"
+	"lab6/Utils"
+	"lab6/controller/node"
+	"lab6/model/net/msg"
 	"net"
 	"os"
 	"time"
@@ -46,7 +46,7 @@ func ConnectToPaxos() {
 		fmt.Println("Waiting for servers... This might take up to 5 seconds, but you can still send a message")
 		lastConfirmedValue = ""
 		lastConfirmedMsgNumber = -1
-		go GetServersBank(conn, GetIPBank())
+		go GetServers(conn, GetIP())
 		if err == nil {
 			fmt.Println("Enter a value to send")
 			var st string
@@ -84,7 +84,7 @@ L:
 		message = sendMsg
 		var err = encoder.Encode(&message)
 		if err != nil {
-			var address = getNewPaxosAddressBank(Utils.GetIp(conn.RemoteAddr().String()))
+			var address = getNewPaxosAddress(Utils.GetIp(conn.RemoteAddr().String()))
 			address = address + ":1337"
 			paxosAddress = address
 			time.Sleep(1000 * time.Millisecond)
@@ -104,7 +104,7 @@ L:
 				//Don`t do anything here				
 			case <-timeout:
 				fmt.Println("--No reply on message from connection, finding a new one!--")
-				var address = getNewPaxosAddressBank(Utils.GetIp(conn.RemoteAddr().String()))
+				var address = getNewPaxosAddress(Utils.GetIp(conn.RemoteAddr().String()))
 				address = address + ":1337"
 				paxosAddress = address
 				time.Sleep(1000 * time.Millisecond)
@@ -131,11 +131,11 @@ func waitForResponse() {
 	for {
 		Utils.CheckError(err)
 		conn, _ := listener.Accept()
-		go holdClientConnectionBank(conn)
+		go holdClientConnection(conn)
 	}
 }
 
-func getNewPaxosAddressBank(failedAddress string) string {
+func getNewPaxosAddress(failedAddress string) string {
 	var newAddress string
 	for _, v := range serverList {
 		if v.IP != failedAddress {
@@ -146,7 +146,7 @@ func getNewPaxosAddressBank(failedAddress string) string {
 	return newAddress
 }
 
-func holdClientConnectionBank(conn net.Conn) {
+func holdClientConnection(conn net.Conn) {
 	var connectionOK = true
 	decoder := gob.NewDecoder(conn)
 	for connectionOK == true {
@@ -181,7 +181,7 @@ func holdClientConnectionBank(conn net.Conn) {
 	fmt.Println("Paxos closed connection, no more to share")
 }
 
-func GetServersBank(conn net.Conn, myIP string) {
+func GetServers(conn net.Conn, myIP string) {
 	for {
 		timeout := make(chan bool, 1)
 		go func() {
@@ -199,7 +199,7 @@ func GetServersBank(conn net.Conn, myIP string) {
 	}
 }
 
-func GetIPBank() string {
+func GetIP() string {
 	name, _ := os.Hostname()
 	addr, _ := net.LookupHost(name)
 	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")

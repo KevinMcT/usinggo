@@ -22,7 +22,7 @@ var (
 	wmessages      = FifoList.NewQueue()
 )
 
-func Proposer(me node.T_Node, nc chan node.T_Node, ac chan string) {
+func Proposer(me node.T_Node, nc chan node.T_Node, ac chan interface{}) {
 	round = RoundVar.GetRound().Round
 	self = me
 	waiting = false
@@ -44,7 +44,7 @@ func Proposer(me node.T_Node, nc chan node.T_Node, ac chan string) {
 
 }
 
-func handlePush(ac chan string) {
+func handlePush(ac chan interface{}) {
 	for {
 		cv := <-ac
 		wmessages.Add(cv)

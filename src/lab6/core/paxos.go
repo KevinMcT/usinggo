@@ -40,7 +40,7 @@ var (
 	endNodeListChan = make(chan []node.T_Node, 10)
 
 	newNodesPaxos = make(chan node.T_Node, 10)
-	acceptorChan  = make(chan string, 20)
+	acceptorChan  = make(chan interface{}, 20)
 	slots         = SlotList.NewSlots()
 )
 
