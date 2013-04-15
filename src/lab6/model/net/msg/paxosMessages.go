@@ -42,19 +42,19 @@ type Prepare struct {
 type Promise struct {
 	ROUND             int
 	LASTACCEPTEDROUND int
-	LASTACCEPTEDVALUE string
+	LASTACCEPTEDVALUE interface{}
 }
 
 type Accept struct {
 	ROUND     int
 	MSGNUMBER int
-	VALUE     string
+	VALUE     interface{}
 }
 
 type Learn struct {
 	ROUND     int
 	MSGNUMBER int
-	VALUE     string
+	VALUE     interface{}
 }
 
 type UpdateNode struct {

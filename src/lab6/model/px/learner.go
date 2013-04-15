@@ -6,13 +6,12 @@ import (
 	"lab6/model/SlotList"
 	"lab6/model/net/msg"
 	"lab6/model/net/tcp"
-	"strings"
 	"time"
 )
 
 var (
 	learns              int
-	value               string
+	value               interface{}
 	learnList           = make([]msg.Learn, 0)
 	r                   int
 	msgNr               int
@@ -55,14 +54,15 @@ func waitForLearns() {
 		waiting = true
 		time.Sleep(15 * time.Millisecond)
 		waiting = false
+		fmt.Println(learnList)
 		for _, v := range learnList {
 			if v.ROUND >= r {
-				if strings.EqualFold(value, "-1") {
+				if value == nil {
 					value = v.VALUE
 					r = v.ROUND
 					msgNr = v.MSGNUMBER
 					learns = learns + 1
-				} else if strings.EqualFold(v.VALUE, value) && r == v.ROUND && msgNr == v.MSGNUMBER {
+				} else if value == v.VALUE && r == v.ROUND && msgNr == v.MSGNUMBER {
 					learns = learns + 1
 				}
 				/*var addedSlot = slots.Add(v, v.MSGNUMBER-1)
@@ -79,12 +79,12 @@ func waitForLearns() {
 			fmt.Println("--", stringMessage, "--")
 			if RoundVar.GetRound().CurrentLeader.IP == self.IP {
 				sendAddress := RoundVar.GetRound().RespondClient + ":1337"
-				var prepare = msg.ClientResponseMessage{Value: value, Round: r, MsgNumber: msgNr}
+				var prepare = msg.ClientResponseMessage{Value: "TODO, DO BANK STUFF AFTER LEARN", Round: r, MsgNumber: msgNr}
 				var message interface{}
 				message = prepare
 				tcp.SendPaxosMessage(sendAddress, message)
 			}
-			value = "-1"
+			value = nil
 		} else {
 			fmt.Println("--Did not receive not enough learns, not learning anything!--")
 		}

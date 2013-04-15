@@ -9,12 +9,12 @@ import (
 )
 
 var (
-	lastAcceptedValue     string
+	lastAcceptedValue     interface{}
 	lastAcceptedRound     int
 	lastAccpetedMsgNumber int
 
 	promisedRound int
-	acceptedValue string
+	acceptedValue interface{}
 	hasAccepted   bool
 	msgNumber     int
 )
