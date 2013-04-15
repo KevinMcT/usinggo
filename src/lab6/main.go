@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"lab5/core"
+	"lab6/core"
 	"os"
 )
 

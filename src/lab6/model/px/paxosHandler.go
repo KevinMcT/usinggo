@@ -3,8 +3,8 @@ package px
 import (
 	"encoding/gob"
 	"fmt"
-	"lab5/Utils"
-	"lab5/model/net/msg"
+	"lab6/Utils"
+	"lab6/model/net/msg"
 	"net"
 )
 
