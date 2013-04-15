@@ -40,6 +40,7 @@ func ConnectToPaxosBank() {
 	udp.SendLocator(GetIPBank())
 	ip := <-udpListenChanBank
 	fmt.Println(ip)
+	sendAllBank = true
 	for {
 		fmt.Println("Connecting to Paxos replica")
 		service := ip + ":1337"
@@ -126,7 +127,7 @@ L:
 		if sendAllBank == false {
 			timeout := make(chan bool, 1)
 			go func() {
-				time.Sleep(1000 * time.Millisecond)
+				time.Sleep(5000 * time.Millisecond)
 				timeout <- true
 			}()
 			select {

@@ -6,6 +6,7 @@ import (
 	"lab6/model/SlotList"
 	"lab6/model/net/msg"
 	"lab6/model/net/tcp"
+	//"reflect"
 	"time"
 )
 
@@ -62,15 +63,17 @@ func waitForLearns() {
 					r = v.ROUND
 					msgNr = v.MSGNUMBER
 					learns = learns + 1
-				} else if value == v.VALUE && r == v.ROUND && msgNr == v.MSGNUMBER {
+				} else if (value == v.VALUE) == true && r == v.ROUND && msgNr == v.MSGNUMBER {
 					learns = learns + 1
 				}
+				fmt.Println("Equals: ", value == v.VALUE)
 				/*var addedSlot = slots.Add(v, v.MSGNUMBER-1)
 				if addedSlot {
 					fmt.Println("Wrote to slot: ", v)
 				}*/
 			}
 		}
+		fmt.Println("Learns: ", learns)
 		if learns > (len(RoundVar.GetRound().List) / 2) {
 			var stringMessage = fmt.Sprintf("Learnt value %s round:%d messageNumber:%d ", value, r, msgNr)
 			learns = 0
