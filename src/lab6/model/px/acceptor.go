@@ -34,8 +34,11 @@ func Acceptor() {
 func receivedPrepare() {
 	for {
 		value := <-msg.PrepareChan
-		promisedRound = value.Message.(msg.Prepare).ROUND
-		sendPromise(value.Ip)
+		var tempRound = value.Message.(msg.Prepare).ROUND
+		if tempRound >= promisedRound {
+			promisedRound = value.Message.(msg.Prepare).ROUND
+			sendPromise(value.Ip)
+		}
 	}
 }
 

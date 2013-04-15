@@ -69,7 +69,7 @@ func handleMessages() {
 
 func sendPrepare() {
 	<-msg.SendPrepareChan
-	quorumPromise = true
+	quorumPromise = false
 	actuallySendPrepare()
 }
 
@@ -127,17 +127,6 @@ func checkPromises() {
 	//allDefault := true
 	if len(promiseList) > len(RoundVar.GetRound().List)/2 {
 		quorumPromise = true
-		/*for _, pMsg := range promiseList {
-			if pMsg.LASTACCEPTEDVALUE != "-1" {
-				allDefault = false
-			}
-		}
-		if allDefault == true {
-			sendAccept()
-			promiseList = make([]message.Promise, 0)
-		} else {
-			pickValueFromProposeList()
-		}*/
 	}
 }
 
