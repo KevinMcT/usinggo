@@ -1,7 +1,7 @@
 package RoundVar
 
 import (
-	"lab5/controller/node"
+	"lab6/controller/node"
 )
 
 type roundSingle struct {

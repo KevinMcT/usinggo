@@ -2,11 +2,11 @@ package px
 
 import (
 	"fmt"
-	"lab5/controller/node"
-	"lab5/model/FifoList"
-	"lab5/model/RoundVar"
-	"lab5/model/net/msg"
-	"lab5/model/net/tcp"
+	"lab6/controller/node"
+	"lab6/model/FifoList"
+	"lab6/model/RoundVar"
+	"lab6/model/net/msg"
+	"lab6/model/net/tcp"
 	"time"
 )
 

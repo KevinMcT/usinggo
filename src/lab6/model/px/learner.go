@@ -2,10 +2,10 @@ package px
 
 import (
 	"fmt"
-	"lab5/model/RoundVar"
-	"lab5/model/SlotList"
-	"lab5/model/net/msg"
-	"lab5/model/net/tcp"
+	"lab6/model/RoundVar"
+	"lab6/model/SlotList"
+	"lab6/model/net/msg"
+	"lab6/model/net/tcp"
 	"strings"
 	"time"
 )
@@ -16,16 +16,17 @@ var (
 	learnList           = make([]msg.Learn, 0)
 	r                   int
 	msgNr               int
+	slots               *SlotList.Slots
 	waitLearnChan       = make(chan string, 1)
-	slots               = SlotList.NewSlots()
 	lastLearntMsgNumber int
 )
 
-func Learner() {
+func Learner(slotList *SlotList.Slots) {
 	fmt.Println("--Learner up and waiting ...")
 	learns = 0
 	value = "-1"
 	lastLearntMsgNumber = -1
+	slots = slotList
 	go receivedLearn()
 	go waitForLearns()
 }

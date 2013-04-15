@@ -3,15 +3,16 @@ package core
 import (
 	"encoding/gob"
 	"fmt"
-	"lab5/Utils"
-	"lab5/controller/node"
-	"lab5/model/RoundVar"
-	"lab5/model/fd"
-	"lab5/model/le"
-	"lab5/model/net/msg"
-	"lab5/model/net/tcp"
-	"lab5/model/net/udp"
-	"lab5/model/px"
+	"lab6/Utils"
+	"lab6/controller/node"
+	"lab6/model/RoundVar"
+	"lab6/model/SlotList"
+	"lab6/model/fd"
+	"lab6/model/le"
+	"lab6/model/net/msg"
+	"lab6/model/net/tcp"
+	"lab6/model/net/udp"
+	"lab6/model/px"
 	"net"
 	"os"
 	"time"
@@ -40,6 +41,7 @@ var (
 
 	newNodesPaxos = make(chan node.T_Node, 10)
 	acceptorChan  = make(chan string, 20)
+	slots         = SlotList.NewSlots()
 )
 
 func Paxos() {
