@@ -21,10 +21,15 @@ func Listen(udpListenChan chan string) {
 		if strings.Contains(recivedSplit[0], "[B]") {
 			SendInitReply("[R]")
 			udpListenChan <- addr.IP.String() + ":" + string(recivedSplit[1])
-		} else if strings.Contains(recivedSplit[0], "[R]") {
+		}
+		if strings.Contains(recivedSplit[0], "[R]") {
 			fmt.Println("Response recived OK from", addr)
 			conn.Close()
 			break
+		}
+		if strings.Contains(recivedSplit[0], "[L]") {
+			fmt.Println("Locator beacon from bank detected", addr)
+			SendInitReply("[R]")
 		}
 		time.Sleep(2 * time.Millisecond)
 	}
@@ -38,6 +43,13 @@ func SendBroadcast(startTime int64) {
 }
 
 func SendInitReply(response string) {
+	mcaddr, _ := net.ResolveUDPAddr("udp4", "239.255.43.99:1889")
+	conn, _ := net.ListenMulticastUDP("udp4", nil, mcaddr)
+	conn.WriteTo([]byte(response), mcaddr)
+	conn.Close()
+}
+
+func SendLocator(ip string) {
 	mcaddr, _ := net.ResolveUDPAddr("udp4", "239.255.43.99:1889")
 	conn, _ := net.ListenMulticastUDP("udp4", nil, mcaddr)
 	conn.WriteTo([]byte(response), mcaddr)

@@ -3,22 +3,22 @@ package core
 import (
 	"encoding/gob"
 	"fmt"
-	"lab5/Utils"
-	"lab5/controller/node"
-	"lab5/model/net/msg"
+	"lab6/Utils"
+	"lab6/controller/node"
+	"lab6/model/net/msg"
 	"net"
 	"os"
 	"time"
 )
 
 var (
-	serverList   []node.T_Node
-	sendAll      bool
-	sentChan     = make(chan int, 1)
-	paxosAddress string
+	serverListBank   []node.T_Node
+	sendAllBank      bool
+	sentChanBank     = make(chan int, 1)
+	paxosAddressBank string
 
-	lastConfirmedValue     string
-	lastConfirmedMsgNumber int
+	lastConfirmedValueBank     string
+	lastConfirmedMsgNumberBank int
 )
 
 /*
@@ -27,12 +27,12 @@ User is asked for a ip and a one word message to send over
 to the system. If the entered ip is not correct/listning the user
 is prompted to enter a new one
 */
-func Client() {
-	go waitForResponse()
-	ConnectToPaxos()
+func Bank() {
+	go waitForResponseBank()
+	ConnectToPaxosBank()
 }
 
-func ConnectToPaxos() {
+func ConnectToPaxosBank() {
 	for {
 		fmt.Println("Enter ip to connecto to")
 		var ip string
@@ -41,12 +41,12 @@ func ConnectToPaxos() {
 		fmt.Println("Connecting to Paxos replica")
 		service := ip + ":1337"
 		fmt.Println(service)
-		paxosAddress = service
-		conn, err := net.Dial("tcp", paxosAddress)
+		paxosAddressBank = service
+		conn, err := net.Dial("tcp", paxosAddressBank)
 		fmt.Println("Waiting for servers... This might take up to 5 seconds, but you can still send a message")
-		lastConfirmedValue = ""
-		lastConfirmedMsgNumber = -1
-		go GetServersBank(conn, GetIPBank())
+		lastConfirmedValueBank = ""
+		lastConfirmedMsgNumberBank = -1
+		go GetServers(conn, GetIP())
 		if err == nil {
 			fmt.Println("Enter a value to send")
 			var st string
@@ -58,12 +58,12 @@ func ConnectToPaxos() {
 			fmt.Println("Wait for response before sending new message? Y/N")
 			fmt.Scanf("%s", &all)
 			if all == "Y" || all == "y" || all == "yes" {
-				sendAll = false
-				sendToPaxos(st, conn, 0, nr)
+				sendAllBank = false
+				sendToPaxosBank(st, conn, 0, nr)
 			}
 			if all == "N" || all == "n" || all == "no" {
-				sendAll = true
-				sendToPaxos(st, conn, 0, nr)
+				sendAllBank = true
+				sendToPaxosBank(st, conn, 0, nr)
 			}
 
 		} else {
@@ -72,7 +72,7 @@ func ConnectToPaxos() {
 	}
 }
 
-func sendToPaxos(st string, conn net.Conn, start int, end int) {
+func sendToPaxosBank(st string, conn net.Conn, start int, end int) {
 	var paxosConn = conn
 	var allOk = true
 L:
@@ -84,31 +84,31 @@ L:
 		message = sendMsg
 		var err = encoder.Encode(&message)
 		if err != nil {
-			var address = getNewPaxosAddressBank(Utils.GetIp(conn.RemoteAddr().String()))
+			var address = getNewPaxosAddress(Utils.GetIp(conn.RemoteAddr().String()))
 			address = address + ":1337"
-			paxosAddress = address
+			paxosAddressBank = address
 			time.Sleep(1000 * time.Millisecond)
-			newConn, _ := net.Dial("tcp", paxosAddress)
+			newConn, _ := net.Dial("tcp", paxosAddressBank)
 			paxosConn = newConn
 			allOk = false
 			break L
 		}
-		if sendAll == false {
+		if sendAllBank == false {
 			timeout := make(chan bool, 1)
 			go func() {
 				time.Sleep(1000 * time.Millisecond)
 				timeout <- true
 			}()
 			select {
-			case <-sentChan:
+			case <-sentChanBank:
 				//Don`t do anything here				
 			case <-timeout:
 				fmt.Println("--No reply on message from connection, finding a new one!--")
-				var address = getNewPaxosAddressBank(Utils.GetIp(conn.RemoteAddr().String()))
+				var address = getNewPaxosAddress(Utils.GetIp(conn.RemoteAddr().String()))
 				address = address + ":1337"
-				paxosAddress = address
+				paxosAddressBank = address
 				time.Sleep(1000 * time.Millisecond)
-				newConn, _ := net.Dial("tcp", paxosAddress)
+				newConn, _ := net.Dial("tcp", paxosAddressBank)
 				paxosConn = newConn
 				allOk = false
 				break L
@@ -118,12 +118,12 @@ L:
 	}
 	if allOk == false {
 		fmt.Println("Starting a new send from last learnt value!")
-		fmt.Println("Last confirmed message: ", lastConfirmedMsgNumber)
-		sendToPaxos(st, paxosConn, lastConfirmedMsgNumber+1, end)
+		fmt.Println("Last confirmed message: ", lastConfirmedMsgNumberBank)
+		sendToPaxosBank(st, paxosConn, lastConfirmedMsgNumberBank+1, end)
 	}
 }
 
-func waitForResponse() {
+func waitForResponseBank() {
 	service := "0.0.0.0:1337"
 	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
 	Utils.CheckError(err)
@@ -131,13 +131,13 @@ func waitForResponse() {
 	for {
 		Utils.CheckError(err)
 		conn, _ := listener.Accept()
-		go holdClientConnectionBank(conn)
+		go holdClientConnection(conn)
 	}
 }
 
-func getNewPaxosAddressBank(failedAddress string) string {
+func getNewPaxosAddress(failedAddress string) string {
 	var newAddress string
-	for _, v := range serverList {
+	for _, v := range serverListBank {
 		if v.IP != failedAddress {
 			newAddress = v.IP
 			break
@@ -146,7 +146,7 @@ func getNewPaxosAddressBank(failedAddress string) string {
 	return newAddress
 }
 
-func holdClientConnectionBank(conn net.Conn) {
+func holdClientConnection(conn net.Conn) {
 	var connectionOK = true
 	decoder := gob.NewDecoder(conn)
 	for connectionOK == true {
@@ -160,14 +160,14 @@ func holdClientConnectionBank(conn net.Conn) {
 			if message != nil {
 				var clientMsg msg.ClientResponseMessage
 				clientMsg = message.(msg.ClientResponseMessage)
-				lastConfirmedValue = clientMsg.Value
-				lastConfirmedMsgNumber = clientMsg.MsgNumber
+				lastConfirmedValueBank = clientMsg.Value
+				lastConfirmedMsgNumberBank = clientMsg.MsgNumber
 				var stringMessage = fmt.Sprintf("Learnt value %s round:%d messageNumber:%d", clientMsg.Value, clientMsg.Round, clientMsg.MsgNumber)
 				fmt.Println("---------------------------------------------------")
 				fmt.Println(stringMessage)
 				fmt.Println("---------------------------------------------------")
-				if sendAll == false {
-					sentChan <- 1
+				if sendAllBank == false {
+					sentChanBank <- 1
 				}
 			} else {
 				fmt.Println("Message is empty stupid!")
@@ -175,13 +175,13 @@ func holdClientConnectionBank(conn net.Conn) {
 		case msg.ClientResponseNodes:
 			var clientMsg msg.ClientResponseNodes
 			clientMsg = message.(msg.ClientResponseNodes)
-			serverList = clientMsg.List
+			serverListBank = clientMsg.List
 		}
 	}
 	fmt.Println("Paxos closed connection, no more to share")
 }
 
-func GetServersBank(conn net.Conn, myIP string) {
+func GetServers(conn net.Conn, myIP string) {
 	for {
 		timeout := make(chan bool, 1)
 		go func() {
@@ -199,7 +199,7 @@ func GetServersBank(conn net.Conn, myIP string) {
 	}
 }
 
-func GetIPBank() string {
+func GetIP() string {
 	name, _ := os.Hostname()
 	addr, _ := net.LookupHost(name)
 	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
