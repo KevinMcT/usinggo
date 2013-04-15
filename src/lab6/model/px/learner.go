@@ -17,6 +17,7 @@ var (
 	r                   int
 	msgNr               int
 	slots               *SlotList.Slots
+	bankAccounts        = make(map[string]int, 0)
 	waitLearnChan       = make(chan string, 1)
 	lastLearntMsgNumber int
 )

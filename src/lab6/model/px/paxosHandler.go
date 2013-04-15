@@ -57,6 +57,13 @@ func holdConnection(conn net.Conn) {
 			case msg.Learn:
 				var mes = msg.Wrapper{Ip: ip, Message: message.(msg.Learn)}
 				msg.LearnChan <- mes
+			case msg.UpdateNode:
+				var update = message.(msg.UpdateNode)
+				slots = update.SlotList
+				bankAccounts = update.BankAccounts
+				var prepare = update.PrepareMessage
+				var mes = msg.Wrapper{Ip: ip, Message: prepare}
+				msg.PrepareChan <- mes
 			}
 		}
 	}

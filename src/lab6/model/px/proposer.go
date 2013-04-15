@@ -20,6 +20,7 @@ var (
 	waitPromisChan = make(chan string, 1)
 	waiting        bool
 	wmessages      = FifoList.NewQueue()
+	newNodeOk      bool
 )
 
 func Proposer(me node.T_Node, nc chan node.T_Node, ac chan string) {
@@ -27,6 +28,7 @@ func Proposer(me node.T_Node, nc chan node.T_Node, ac chan string) {
 	self = me
 	waiting = false
 	quorumPromise = false
+	newNodeOk = true
 	go receviedPromise()
 	go waitForPromise()
 	go handlePush(ac)
@@ -54,14 +56,27 @@ func handlePush(ac chan string) {
 //Method for getting messages from the que and give them to
 //paxos to be processed.
 func handleMessages() {
+	timeout := make(chan bool, 1)
 	for {
 		time.Sleep(25 * time.Millisecond)
-		var msg = wmessages.Next()
-		if msg != nil {
-			clientValue = msg.(string)
-			if quorumPromise == true {
-				RoundVar.GetRound().MessageNumber = RoundVar.GetRound().MessageNumber + 1
-				sendAccept()
+		timeout <- true
+		select {
+		case nnAddress := <-msg.GetNodeOnTrack:
+			newNodeOk = false
+			sendAddress := nnAddress + ":1338"
+			var prepare = msg.Prepare{ROUND: round}
+			var updateMessage = msg.UpdateNode{PrepareMessage: prepare, SlotList: slots, BankAccounts: bankAccounts}
+			var message interface{}
+			message = updateMessage
+			tcp.SendPaxosMessage(sendAddress, message)
+		case <-timeout:
+			if quorumPromise == true && newNodeOk == true {
+				var msg = wmessages.Next()
+				if msg != nil {
+					clientValue = msg.(string)
+					RoundVar.GetRound().MessageNumber = RoundVar.GetRound().MessageNumber + 1
+					sendAccept()
+				}
 			}
 		}
 	}
@@ -116,7 +131,13 @@ func waitForPromise() {
 		waiting = true
 		time.Sleep(10 * time.Millisecond)
 		waiting = false
-		checkPromises()
+		// If a node has come back up or a new one is added
+		// we dont check for quorum.
+		if newNodeOk == true {
+			checkPromises()
+		} else {
+			newNodeOk = true
+		}
 	}
 }
 
@@ -127,17 +148,7 @@ func checkPromises() {
 	//allDefault := true
 	if len(promiseList) > len(RoundVar.GetRound().List)/2 {
 		quorumPromise = true
-		/*for _, pMsg := range promiseList {
-			if pMsg.LASTACCEPTEDVALUE != "-1" {
-				allDefault = false
-			}
-		}
-		if allDefault == true {
-			sendAccept()
-			promiseList = make([]message.Promise, 0)
-		} else {
-			pickValueFromProposeList()
-		}*/
+		promiseList = make([]msg.Promise, 0)
 	}
 }
 

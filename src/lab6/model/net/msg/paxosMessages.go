@@ -2,6 +2,7 @@ package msg
 
 import (
 	"encoding/gob"
+	"lab6/model/SlotList"
 )
 
 var (
@@ -11,6 +12,7 @@ var (
 	PromiseChan     chan Wrapper
 	RestartProposer chan string
 	SendPrepareChan chan bool
+	GetNodeOnTrack  chan string
 )
 
 func init() {
@@ -18,12 +20,14 @@ func init() {
 	gob.Register(Promise{})
 	gob.Register(Accept{})
 	gob.Register(Learn{})
+	gob.Register(UpdateNode{})
 	LearnChan = make(chan Wrapper, 10)
 	AcceptChan = make(chan Wrapper, 10)
 	PrepareChan = make(chan Wrapper, 10)
 	PromiseChan = make(chan Wrapper, 10)
 	SendPrepareChan = make(chan bool, 10)
 	RestartProposer = make(chan string, 10)
+	GetNodeOnTrack = make(chan string, 10)
 }
 
 type Wrapper struct {
@@ -51,4 +55,10 @@ type Learn struct {
 	ROUND     int
 	MSGNUMBER int
 	VALUE     string
+}
+
+type UpdateNode struct {
+	PrepareMessage Prepare
+	SlotList       *SlotList.Slots
+	BankAccounts   map[string]int
 }
