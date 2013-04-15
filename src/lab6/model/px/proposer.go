@@ -14,7 +14,7 @@ var (
 	self           node.T_Node
 	nodeList       = make([]node.T_Node, 0)
 	round          int
-	clientValue    string
+	clientValue    interface{}
 	promiseList    = make([]msg.Promise, 0)
 	quorumPromise  bool
 	waitPromisChan = make(chan string, 1)
@@ -73,7 +73,7 @@ func handleMessages() {
 			if quorumPromise == true && newNodeOk == true {
 				var msg = wmessages.Next()
 				if msg != nil {
-					clientValue = msg.(string)
+					clientValue = msg
 					RoundVar.GetRound().MessageNumber = RoundVar.GetRound().MessageNumber + 1
 					sendAccept()
 				}
@@ -157,7 +157,7 @@ Method for choosing a value from all the promises.
 */
 func pickValueFromProposeList() {
 	var largestRound int = 0
-	var largestRoundValue string = ""
+	var largestRoundValue interface{} = nil
 	for _, pMsg := range promiseList {
 		if pMsg.LASTACCEPTEDROUND > largestRound {
 			largestRound = pMsg.LASTACCEPTEDROUND

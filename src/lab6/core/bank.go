@@ -71,12 +71,14 @@ func ConnectToPaxosBank() {
 				fmt.Println("-- Enter amount you wish to deposit --")
 				fmt.Scanf("%d", &amt)
 				bankMessage = msg.Deposit{AccountNumber: accFrm, Amount: amt}
+				break
 			case 2:
 				fmt.Println("-- Enter your account number --")
 				fmt.Scanf("%d", &accFrm)
 				fmt.Println("-- Enter amount you wish to withdraw --")
 				fmt.Scanf("%d", &amt)
 				bankMessage = msg.Withdraw{AccountNumber: accFrm, Amount: amt}
+				break
 			case 3:
 				fmt.Println("-- Enter your account number --")
 				fmt.Scanf("%d", &accFrm)
@@ -85,10 +87,12 @@ func ConnectToPaxosBank() {
 				fmt.Println("-- Enter account to transfer to --")
 				fmt.Scanf("%d", accTo)
 				bankMessage = msg.Transfer{FromAccount: accFrm, ToAccount: accTo, Amount: amt}
+				break
 			case 4:
 				fmt.Println("-- Enter your account number --")
 				fmt.Scanf("%d", &accFrm)
 				bankMessage = msg.Balance{AccountNumber: accFrm}
+				break
 			case 0:
 				os.Exit(0)
 			}
