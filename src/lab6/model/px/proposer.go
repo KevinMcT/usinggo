@@ -62,12 +62,14 @@ func handleMessages() {
 		timeout <- true
 		select {
 		case nnAddress := <-msg.GetNodeOnTrack:
+			fmt.Println("Getting node up to date!")
 			newNodeOk = false
 			sendAddress := nnAddress + ":1338"
 			var prepare = msg.Prepare{ROUND: round}
 			var updateMessage = msg.UpdateNode{PrepareMessage: prepare, SlotList: slots, BankAccounts: bankAccounts}
 			var message interface{}
 			message = updateMessage
+			fmt.Println("Sending update Message")
 			tcp.SendPaxosMessage(sendAddress, message)
 		case <-timeout:
 			if quorumPromise == true && newNodeOk == true {
@@ -136,6 +138,7 @@ func waitForPromise() {
 		if newNodeOk == true {
 			checkPromises()
 		} else {
+			fmt.Println("New node up to date, can continue!")
 			newNodeOk = true
 		}
 	}

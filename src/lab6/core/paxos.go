@@ -170,7 +170,9 @@ func Paxos() {
 
 func addNodesFromUdp(inputChan chan string) {
 	var exists bool
+	var initPrepare bool
 	exists = false
+	initPrepare = false
 	for {
 		var node node.T_Node
 		node = <-createNodeChan
@@ -185,6 +187,7 @@ func addNodesFromUdp(inputChan chan string) {
 				exists = true
 				fmt.Println("--Node already in system--")
 				restoreChan <- node
+				msg.GetNodeOnTrack <- v.IP
 				nodeList[i].SUSPECTED = false
 				nodeList[i].TIME = node.TIME
 				break
@@ -198,8 +201,10 @@ func addNodesFromUdp(inputChan chan string) {
 			newNodesPaxos <- node
 			nodeList = append(nodeList, node)
 			RoundVar.GetRound().List = nodeList
-			if len(nodeList) > 2 && leader.IP == me.IP {
+			msg.GetNodeOnTrack <- node.IP
+			if len(nodeList) > 2 && leader.IP == me.IP && initPrepare == false {
 				msg.SendPrepareChan <- true
+				initPrepare = true
 			}
 		}
 		exists = false

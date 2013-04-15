@@ -58,11 +58,15 @@ func holdConnection(conn net.Conn) {
 				var mes = msg.Wrapper{Ip: ip, Message: message.(msg.Learn)}
 				msg.LearnChan <- mes
 			case msg.UpdateNode:
+				fmt.Println("Received update message!")
 				var update = message.(msg.UpdateNode)
 				slots = update.SlotList
+				fmt.Println("SlotList: ", slots)
 				bankAccounts = update.BankAccounts
+				fmt.Println("BankAccounts: ", bankAccounts)
 				var prepare = update.PrepareMessage
 				var mes = msg.Wrapper{Ip: ip, Message: prepare}
+				fmt.Println("Prepare: ", prepare)
 				msg.PrepareChan <- mes
 			}
 		}
