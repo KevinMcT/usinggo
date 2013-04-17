@@ -2,11 +2,11 @@ package px
 
 import (
 	"fmt"
+	"lab6/Utils"
 	"lab6/model/RoundVar"
 	"lab6/model/SlotList"
 	"lab6/model/net/msg"
 	"lab6/model/net/tcp"
-	//"reflect"
 	"time"
 )
 
@@ -25,7 +25,7 @@ var (
 func Learner(slotList *SlotList.Slots) {
 	fmt.Println("--Learner up and waiting ...")
 	learns = 0
-	value = "-1"
+	value = nil
 	lastLearntMsgNumber = -1
 	slots = slotList
 	go receivedLearn()
@@ -56,17 +56,19 @@ func waitForLearns() {
 		time.Sleep(15 * time.Millisecond)
 		waiting = false
 		fmt.Println(learnList)
+		fmt.Println("Init value: ", value)
 		for _, v := range learnList {
 			if v.ROUND >= r {
 				if value == nil {
 					value = v.VALUE
+					fmt.Println("new Value: ", value)
 					r = v.ROUND
 					msgNr = v.MSGNUMBER
 					learns = learns + 1
-				} else if (value == v.VALUE) == true && r == v.ROUND && msgNr == v.MSGNUMBER {
+				} else if Utils.Equals(value, v.VALUE) && r == v.ROUND && msgNr == v.MSGNUMBER {
 					learns = learns + 1
 				}
-				fmt.Println("Equals: ", value == v.VALUE)
+				fmt.Println("Learns: ", learns)
 				/*var addedSlot = slots.Add(v, v.MSGNUMBER-1)
 				if addedSlot {
 					fmt.Println("Wrote to slot: ", v)
