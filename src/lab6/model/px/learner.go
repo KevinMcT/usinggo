@@ -68,23 +68,21 @@ func waitForLearns() {
 				} else if Utils.Equals(value, v.VALUE) && r == v.ROUND && msgNr == v.MSGNUMBER {
 					learns = learns + 1
 				}
-				fmt.Println("Learns: ", learns)
-				/*var addedSlot = slots.Add(v, v.MSGNUMBER-1)
-				if addedSlot {
-					fmt.Println("Wrote to slot: ", v)
-				}*/
 			}
 		}
-		fmt.Println("Learns: ", learns)
 		if learns > (len(RoundVar.GetRound().List) / 2) {
 			var stringMessage = fmt.Sprintf("Learnt value %s round:%d messageNumber:%d ", value, r, msgNr)
 			learns = 0
 			lastLearntMsgNumber = msgNr
 			learnList = make([]msg.Learn, 0)
 			fmt.Println("--", stringMessage, "--")
+			var addedSlot = slots.Add(value, msgNr)
+			if addedSlot {
+				fmt.Println("Wrote to slot: ", value)
+			}
 			if RoundVar.GetRound().CurrentLeader.IP == self.IP {
 				sendAddress := RoundVar.GetRound().RespondClient + ":1337"
-				var prepare = msg.ClientResponseMessage{Value: "TODO, DO BANK STUFF AFTER LEARN", Round: r, MsgNumber: msgNr}
+				var prepare = msg.ClientResponseMessage{Value: handleBankRequest(value), Round: r, MsgNumber: msgNr}
 				var message interface{}
 				message = prepare
 				tcp.SendPaxosMessage(sendAddress, message)
@@ -94,4 +92,38 @@ func waitForLearns() {
 			fmt.Println("--Did not receive not enough learns, not learning anything!--")
 		}
 	}
+}
+
+func handleBankRequest(req interface{}) string {
+	switch req.(type) {
+	case msg.Deposit:
+		dep := req.(msg.Deposit)
+		oldBalance := bankAccounts[dep.AccountNumber]
+		newBalance := oldBalance + dep.Amount
+		bankAccounts[dep.AccountNumber] = newBalance
+		return fmt.Sprintf("Deposited %d into %s, new balance %d", dep.Amount, dep.AccountNumber, newBalance)
+	case msg.Withdraw:
+		rem := req.(msg.Withdraw)
+		oldBalance := bankAccounts[rem.AccountNumber]
+		newBalance := oldBalance - rem.Amount
+		bankAccounts[rem.AccountNumber] = newBalance
+		return fmt.Sprintf("Withdrew %d out of %s, new balance %d", rem.Amount, rem.AccountNumber, newBalance)
+	case msg.Transfer:
+		tran := req.(msg.Transfer)
+		//From
+		oldBalance := bankAccounts[tran.FromAccount]
+		newBalance := oldBalance - tran.Amount
+		bankAccounts[tran.FromAccount] = newBalance
+		//To
+		oldBalance = bankAccounts[tran.ToAccount]
+		newBalance = oldBalance + tran.Amount
+		bankAccounts[tran.ToAccount] = newBalance
+
+		return fmt.Sprintf("Transferd %d from %s to %s", tran.Amount, tran.FromAccount, tran.ToAccount)
+	case msg.Balance:
+		bal := req.(msg.Balance)
+		balance := bankAccounts[bal.AccountNumber]
+		return fmt.Sprintf("Balance on account %s: %d", bal.AccountNumber, balance)
+	}
+	return ""
 }

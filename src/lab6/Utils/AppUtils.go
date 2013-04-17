@@ -56,8 +56,6 @@ not a problem to expand so it can support more types if needed.
 func Equals(i1 interface{}, i2 interface{}) bool {
 	i1Values := reflect.ValueOf(i1)
 	i2Values := reflect.ValueOf(i2)
-	fmt.Println("i1 type: ", i1Values.Type())
-	fmt.Println("i2 type: ", i2Values.Type())
 	if i1Values.Type() == i2Values.Type() {
 		fields := i1Values.NumField()
 		for i := 0; i < fields; i++ {
@@ -67,19 +65,16 @@ func Equals(i1 interface{}, i2 interface{}) bool {
 			case int:
 				i2Val := i2Field.Interface().(int)
 				if i1Val != i2Val {
-					fmt.Println("Not the same int!")
 					return false
 				}
 			case string:
 				i2Val := i2Field.Interface().(string)
 				if i1Val != i2Val {
-					fmt.Println("Not the same string!")
 					return false
 				}
 			}
 		}
 		return true
 	}
-	fmt.Println("Not the same type!")
 	return false
 }

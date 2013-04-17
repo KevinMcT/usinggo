@@ -269,7 +269,6 @@ func holdReplicaConnection(conn net.Conn) {
 				var clientMsg msg.ClientRequestMessage
 				clientMsg = message.(msg.ClientRequestMessage)
 				if leader.IP == me.IP {
-					fmt.Println("Got new message!")
 					if clientMsg.RemoteAddress == "" {
 						RoundVar.GetRound().RespondClient = Utils.GetIp(conn.RemoteAddr().String())
 					} else {

@@ -49,7 +49,6 @@ func Proposer(me node.T_Node, nc chan node.T_Node, ac chan interface{}) {
 func handlePush(ac chan interface{}) {
 	for {
 		cv := <-ac
-		fmt.Println("Adding message to que!")
 		wmessages.Add(cv)
 	}
 }
@@ -57,12 +56,9 @@ func handlePush(ac chan interface{}) {
 //Method for getting messages from the que and give them to
 //paxos to be processed.
 func handleMessages() {
-	fmt.Println("Starting handle messages")
 	timeout := make(chan bool, 10)
 	for {
-		fmt.Println("Waiting..")
 		time.Sleep(300 * time.Millisecond)
-		fmt.Println("Done waiting...")
 		timeout <- true
 		select {
 		case nnAddress := <-msg.GetNodeOnTrack:
@@ -79,7 +75,6 @@ func handleMessages() {
 			if quorumPromise == true && newNodeOk == true {
 				var msg = wmessages.Next()
 				if msg != nil {
-					fmt.Println("Handling message from que")
 					clientValue = msg
 					RoundVar.GetRound().MessageNumber = RoundVar.GetRound().MessageNumber + 1
 					sendAccept()
