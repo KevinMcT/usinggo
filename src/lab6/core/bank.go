@@ -55,7 +55,7 @@ func ConnectToPaxosBank() {
 			fmt.Println("*          Welcome to the National Bank of Bullshit                 *")
 			fmt.Println("* Choose the function you would like to test using numbers 1 - 2    *")
 			fmt.Println("* 1 - Deposit                                                       *")
-			fmt.Println("* 2 - Withdraw                                                     *")
+			fmt.Println("* 2 - Withdraw                                                      *")
 			fmt.Println("* 3 - Transfer                                                      *")
 			fmt.Println("* 4 - Balance                                                       *")
 			fmt.Println("* 0 - Quit                                                          *")
@@ -86,7 +86,7 @@ func ConnectToPaxosBank() {
 				fmt.Println("-- Enter amount you wish to transfer --")
 				fmt.Scanf("%d", &amt)
 				fmt.Println("-- Enter account to transfer to --")
-				fmt.Scanf("%s", accTo)
+				fmt.Scanf("%s", &accTo)
 				bankMessage = msg.Transfer{FromAccount: accFrm, ToAccount: accTo, Amount: amt}
 				break
 			case 4:
@@ -193,7 +193,7 @@ func holdClientConnectionBank(conn net.Conn) {
 				clientMsg = message.(msg.ClientResponseMessage)
 				lastConfirmedValueBank = clientMsg.Value
 				lastConfirmedMsgNumberBank = clientMsg.MsgNumber
-				var stringMessage = fmt.Sprintf("Learnt value %s round:%d messageNumber:%d", clientMsg.Value, clientMsg.Round, clientMsg.MsgNumber)
+				var stringMessage = fmt.Sprintf("Message from bank: %s ", clientMsg.Value)
 				fmt.Println("---------------------------------------------------")
 				fmt.Println(stringMessage)
 				fmt.Println("---------------------------------------------------")
