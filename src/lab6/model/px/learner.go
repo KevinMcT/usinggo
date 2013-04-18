@@ -98,6 +98,9 @@ func handleBankRequest(req interface{}) string {
 	switch req.(type) {
 	case msg.Deposit:
 		dep := req.(msg.Deposit)
+		if dep.Amount < 0 {
+			return fmt.Sprintf("Cannot deposit negative cash. This does not exist, even in NBB")
+		}
 		oldBalance := bankAccounts[dep.AccountNumber]
 		newBalance := oldBalance + dep.Amount
 		bankAccounts[dep.AccountNumber] = newBalance
@@ -106,13 +109,25 @@ func handleBankRequest(req interface{}) string {
 		rem := req.(msg.Withdraw)
 		oldBalance := bankAccounts[rem.AccountNumber]
 		newBalance := oldBalance - rem.Amount
+		if newBalance < 0 {
+			return fmt.Sprintf("Insufficiant funds in Account %s", rem.Amount)
+		}
+		if rem.Amount < 0 {
+			return fmt.Sprintf("Cannot withdraw negative cash. This does not exist, even in NBB")
+		}
 		bankAccounts[rem.AccountNumber] = newBalance
 		return fmt.Sprintf("Withdrew %d out of %s, new balance %d", rem.Amount, rem.AccountNumber, newBalance)
 	case msg.Transfer:
 		tran := req.(msg.Transfer)
 		//From
 		oldBalance := bankAccounts[tran.FromAccount]
+		if tran.Amount < 0 {
+			return fmt.Sprintf("Cannot transfer negative cash. This does not exist, even in NBB")
+		}
 		newBalance := oldBalance - tran.Amount
+		if newBalance < 0 {
+			return fmt.Sprintf("Insufficiant funds in transfer Account %s", tran.FromAccount)
+		}
 		bankAccounts[tran.FromAccount] = newBalance
 		//To
 		oldBalance = bankAccounts[tran.ToAccount]
