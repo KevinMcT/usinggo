@@ -118,6 +118,7 @@ func Paxos() {
 				for i, v := range nodeList {
 					if v.IP == restoredNode.IP {
 						nodeList[i].SUSPECTED = false
+						msg.GetNodeOnTrack <- v.IP
 						newNodeChan <- nodeList[i]
 					}
 					if me.IP != v.IP {
