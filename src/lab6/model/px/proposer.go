@@ -2,11 +2,11 @@ package px
 
 import (
 	"fmt"
-	"lab5/model/net/tcp"
 	"lab6/controller/node"
 	"lab6/model/FifoList"
 	"lab6/model/RoundVar"
 	"lab6/model/net/msg"
+	"lab6/model/net/tcp"
 	"time"
 )
 
@@ -69,9 +69,11 @@ func handleMessages() {
 			var updateMessage = msg.UpdateNode{PrepareMessage: prepare, SlotList: slots, BankAccounts: bankAccounts}
 			var message interface{}
 			message = updateMessage
+			time.Sleep(2000 * time.Millisecond)
 			fmt.Println("Sending update Message")
-			time.Sleep(20 * time.Millisecond)
-			tcp.SendPaxosMessage(sendAddress, message)
+			fmt.Println("Sending to: ", sendAddress)
+			tcp.SendSomething(sendAddress, message)
+			fmt.Println("Sent message")
 		case <-timeout:
 			if quorumPromise == true && newNodeOk == true {
 				var msg = wmessages.Next()

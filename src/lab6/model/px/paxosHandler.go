@@ -28,7 +28,9 @@ func HandlePaxosMessages() {
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	for {
 		Utils.CheckError(err)
+		fmt.Println("PH waiting for connection!")
 		conn, _ := listener.Accept()
+		fmt.Println("PH got connection!")
 		go holdConnection(conn)
 	}
 }
@@ -43,6 +45,7 @@ func holdConnection(conn net.Conn) {
 			connectionOK = false
 		}
 		if message != nil {
+			fmt.Println("Got a new mesage!")
 			ip := Utils.GetIp(conn.RemoteAddr().String())
 			switch message.(type) {
 			case msg.Prepare:

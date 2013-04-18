@@ -83,17 +83,70 @@ func Send(ip string, msg interface{}) error {
 func SendPaxosMessage(address string, message interface{}) {
 	conn := Dial(address)
 	if conn != nil {
-		encoder := GetEncoder(address)
+		encoder := gob.NewEncoder(conn)
+		//encoder := GetEncoder(address)
+		//var err = encoder.Encode(&message)
 		var err = encoder.Encode(&message)
 		if err != nil {
+			fmt.Println("WRONG!!! ", err)
+		}
+		/*if err != nil {
 			fmt.Println("--TCP Paxos message: Encoding failed!!: ", err, "--")
+			conn, err := net.Dial("tcp", address)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				encoder := gob.NewEncoder(conn)
+				var enErr = encoder.Encode(&message)
+				if enErr != nil {
+					fmt.Println("Encoder problem: ", enErr)
+				}
+				StoreEncoder(conn, *encoder)
+			}
 		} else {
 			Close(conn)
 			StoreEncoder(conn, *encoder)
-		}
+		}*/
 	} else {
 		fmt.Println("--Cannot send message to node--")
 	}
+}
+
+func SendSomething(address string, message interface{}) {
+	fmt.Println("1")
+	conn := Dial(address)
+	if conn != nil {
+		fmt.Println("2")
+		encoder := gob.NewEncoder(conn)
+		//encoder := GetEncoder(address)
+		//var err = encoder.Encode(&message)
+		fmt.Println("3")
+		var err = encoder.Encode(&message)
+		fmt.Println("4")
+		if err != nil {
+			fmt.Println("WRONG!!! ", err)
+		}
+		/*if err != nil {
+			fmt.Println("--TCP Paxos message: Encoding failed!!: ", err, "--")
+			conn, err := net.Dial("tcp", address)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				encoder := gob.NewEncoder(conn)
+				var enErr = encoder.Encode(&message)
+				if enErr != nil {
+					fmt.Println("Encoder problem: ", enErr)
+				}
+				StoreEncoder(conn, *encoder)
+			}
+		} else {
+			Close(conn)
+			StoreEncoder(conn, *encoder)
+		}*/
+	} else {
+		fmt.Println("--Cannot send message to node--")
+	}
+	fmt.Println("5")
 }
 
 func AppendIfMissing(slice []node.T_Node, i node.T_Node) []node.T_Node {

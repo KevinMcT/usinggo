@@ -22,6 +22,7 @@ var (
 	lastConfirmedMsgNumberBank int
 	udpListenChanBank          = make(chan string, 0)
 	bankMessage                interface{}
+	connectionIP               string
 )
 
 /*
@@ -39,11 +40,11 @@ func Bank() {
 func ConnectToPaxosBank() {
 	udp.SendLocator(GetIPBank())
 	ip := <-udpListenChanBank
-	fmt.Println(ip)
+	connectionIP = ip
 	sendAllBank = true
 	for {
 		fmt.Println("Connecting to Paxos replica")
-		service := ip + ":1337"
+		service := connectionIP + ":1337"
 		paxosAddressBank = service
 		conn, err := net.Dial("tcp", paxosAddressBank)
 		fmt.Println("Waiting for servers... This might take up to 5 seconds, but you can still send a message")
@@ -99,7 +100,12 @@ func ConnectToPaxosBank() {
 			}
 			sendToPaxosBank(bankMessage, conn, 0, 1)
 		} else {
-			fmt.Println("--Seems like the node you are trying to connect is gone down or does not exist. Please try another address--")
+			//fmt.Println("--Seems like the node you are trying to connect is gone down or does not exist. Please try another address--")
+			for i := 0; i < len(serverListBank); i++ {
+				if serverListBank[i].IP != connectionIP {
+					connectionIP = serverListBank[i].IP
+				}
+			}
 		}
 	}
 }
