@@ -70,6 +70,7 @@ func handleMessages() {
 			var message interface{}
 			message = updateMessage
 			fmt.Println("Sending update Message")
+			time.Sleep(20 * time.Millisecond)
 			tcp.SendPaxosMessage(sendAddress, message)
 		case <-timeout:
 			if quorumPromise == true && newNodeOk == true {
