@@ -111,52 +111,13 @@ func ConnectToPaxosBank() {
 }
 
 func sendToPaxosBank(st interface{}, conn net.Conn, start int, end int) {
-	var paxosConn = conn
-	var allOk = true
-L:
-	for i := start; i < end; i++ {
-		encoder := gob.NewEncoder(paxosConn)
-		var sendMsg = msg.ClientRequestMessage{Content: st}
-		var message interface{}
-		message = sendMsg
-		var err = encoder.Encode(&message)
-		if err != nil {
-			var address = getNewPaxosAddressBank(Utils.GetIp(conn.RemoteAddr().String()))
-			address = address + ":1337"
-			paxosAddressBank = address
-			time.Sleep(1000 * time.Millisecond)
-			newConn, _ := net.Dial("tcp", paxosAddressBank)
-			paxosConn = newConn
-			allOk = false
-			break L
-		}
-		if sendAllBank == false {
-			timeout := make(chan bool, 1)
-			go func() {
-				time.Sleep(5000 * time.Millisecond)
-				timeout <- true
-			}()
-			select {
-			case <-sentChanBank:
-				//Don`t do anything here				
-			case <-timeout:
-				fmt.Println("--No reply on message from connection, finding a new one!--")
-				var address = getNewPaxosAddressBank(Utils.GetIp(conn.RemoteAddr().String()))
-				address = address + ":1337"
-				paxosAddressBank = address
-				time.Sleep(1000 * time.Millisecond)
-				newConn, _ := net.Dial("tcp", paxosAddressBank)
-				paxosConn = newConn
-				allOk = false
-				break L
-			}
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	if allOk == false {
-		fmt.Println("Starting a new send from last learnt value!")
-		fmt.Println("Last confirmed message: ", lastConfirmedMsgNumberBank)
-		sendToPaxosBank(st, paxosConn, lastConfirmedMsgNumberBank+1, end)
+	encoder := gob.NewEncoder(conn)
+	var sendMsg = msg.ClientRequestMessage{Content: st}
+	var message interface{}
+	message = sendMsg
+	var err = encoder.Encode(&message)
+	if err != nil {
+		fmt.Println("Hello")
 	}
 }
 
@@ -243,3 +204,51 @@ func GetIPBank() string {
 	ip := UDPAddr.IP.String()
 	return ip
 }
+
+/*	var paxosConn = conn
+	var allOk = true
+L:
+	for i := start; i < end; i++ {
+		encoder := gob.NewEncoder(paxosConn)
+		var sendMsg = msg.ClientRequestMessage{Content: st}
+		var message interface{}
+		message = sendMsg
+		var err = encoder.Encode(&message)
+		if err != nil {
+			var address = getNewPaxosAddressBank(Utils.GetIp(conn.RemoteAddr().String()))
+			address = address + ":1337"
+			paxosAddressBank = address
+			time.Sleep(1000 * time.Millisecond)
+			newConn, _ := net.Dial("tcp", paxosAddressBank)
+			paxosConn = newConn
+			allOk = false
+			break L
+		}
+		if sendAllBank == false {
+			timeout := make(chan bool, 1)
+			go func() {
+				time.Sleep(5000 * time.Millisecond)
+				timeout <- true
+			}()
+			select {
+			case <-sentChanBank:
+				//Don`t do anything here				
+			case <-timeout:
+				fmt.Println("--No reply on message from connection, finding a new one!--")
+				var address = getNewPaxosAddressBank(Utils.GetIp(conn.RemoteAddr().String()))
+				address = address + ":1337"
+				paxosAddressBank = address
+				time.Sleep(1000 * time.Millisecond)
+				newConn, _ := net.Dial("tcp", paxosAddressBank)
+				paxosConn = newConn
+				allOk = false
+				break L
+			}
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if allOk == false {
+		fmt.Println("Starting a new send from last learnt value!")
+		fmt.Println("Last confirmed message: ", lastConfirmedMsgNumberBank)
+		sendToPaxosBank(st, paxosConn, lastConfirmedMsgNumberBank+1, end)
+	}*/
