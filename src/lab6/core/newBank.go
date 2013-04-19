@@ -139,8 +139,8 @@ func SendMessage(mesg interface{}) {
 	var message interface{}
 	message = sendMsg
 	enc := gob.NewEncoder(conn)
-	var err = enc.Encode(&message)
-	if err != nil {
+	var erro = enc.Encode(&message)
+	if erro != nil {
 		fmt.Println("MSG: New server required")
 		newConnRequired <- true
 		<-newServerDetected
