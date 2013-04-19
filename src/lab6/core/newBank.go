@@ -4,6 +4,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"lab6/Utils"
+	"lab6/controller/node"
 	"lab6/model/net/msg"
 	"lab6/model/net/udp"
 	"net"
@@ -12,31 +13,42 @@ import (
 )
 
 var (
-	udpListenChan1  = make(chan string, 0)
-	newConnRequired = make(chan bool, 0)
-	firstConnection = make(chan int, 0)
-	conn            net.Conn
-	err             error
-	ip              string
-	pMessage        interface{}
+	nodeServersList   []node.T_Node
+	udpListenChan1    = make(chan string, 0)
+	newConnRequired   = make(chan bool, 0)
+	firstConnection   = make(chan int, 0)
+	newServerDetected = make(chan int, 0)
+	conn              net.Conn
+	err               error
+	ip                string
+	pMessage          interface{}
+	first             bool
 )
 
 func NewBank() {
+	first = true
 	go udp.Listen(udpListenChan1)
 	go ListenForConnections()
 	go HandleNewConnection()
 	udp.SendLocator(GetIPBank())
 	ip = <-udpListenChan1
 	conn, err = CreateDialUp(ip)
-	go GetServerNodes(GetIP1())
+	go GetServerNodes(GetMyIP())
 	Runnable()
 }
 
 func HandleNewConnection() {
 	for {
 		<-newConnRequired
+		for i, v := range nodeServersList {
+			if ip == Utils.GetIp(v.IP) {
+				nodeServersList[i].SUSPECTED = true
+			}
+		}
 		ip = GetNewAddress(ip)
 		conn, err = CreateDialUp(ip)
+		fmt.Println("New connection to: ", ip, "with conn:", conn, "established")
+		newServerDetected <- 1
 	}
 }
 
@@ -131,6 +143,8 @@ func SendMessage(mesg interface{}) {
 	if err != nil {
 		fmt.Println("MSG: New server required")
 		newConnRequired <- true
+		<-newServerDetected
+		SendMessage(mesg)
 	}
 }
 
@@ -138,7 +152,7 @@ func CreateDialUp(ip string) (net.Conn, error) {
 	return net.Dial("tcp", ip+":1337")
 }
 
-func GetIP1() string {
+func GetMyIP() string {
 	name, _ := os.Hostname()
 	addr, _ := net.LookupHost(name)
 	UDPAddr, _ := net.ResolveUDPAddr("udp4", addr[0]+":1888")
@@ -149,8 +163,8 @@ func GetIP1() string {
 func GetNewAddress(failedAddress string) string {
 	var newAddress string
 R:
-	for _, v := range serverListBank {
-		if v.IP != Utils.GetIp(failedAddress) {
+	for _, v := range nodeServersList {
+		if v.IP != Utils.GetIp(failedAddress) && v.SUSPECTED != true {
 			newAddress = v.IP
 			break R
 		}
@@ -200,7 +214,11 @@ func KeepConn(conn net.Conn) {
 		case msg.ClientResponseNodes:
 			var clientMsg msg.ClientResponseNodes
 			clientMsg = message.(msg.ClientResponseNodes)
-			serverListBank = clientMsg.List
+			nodeServersList = clientMsg.List
+			if first {
+				fmt.Println("Servers is downloaded")
+				first = false
+			}
 		}
 	}
 	fmt.Println("Paxos closed connection, no more to share")
