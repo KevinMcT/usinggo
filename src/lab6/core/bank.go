@@ -23,6 +23,8 @@ var (
 	udpListenChanBank          = make(chan string, 0)
 	bankMessage                interface{}
 	connectionIP               string
+	testChan                   = make(chan int, 0)
+	conn1                      net.Conn
 )
 
 /*
@@ -42,19 +44,20 @@ func ConnectToPaxosBank() {
 	ip := <-udpListenChanBank
 	connectionIP = ip
 	sendAllBank = true
+	fmt.Println("Connecting to Paxos replica")
+	service := connectionIP + ":1337"
+	paxosAddressBank = service
+	conn, err := net.Dial("tcp", paxosAddressBank)
+	conn1 = conn
+	go GetServersBank(conn1, GetIPBank())
+	fmt.Println("Waiting for servers... This might take up to 5 seconds, but you can still send a message")
 	for {
-		fmt.Println("Connecting to Paxos replica")
-		service := connectionIP + ":1337"
-		paxosAddressBank = service
-		conn, err := net.Dial("tcp", paxosAddressBank)
-		fmt.Println("Waiting for servers... This might take up to 5 seconds, but you can still send a message")
 		lastConfirmedValueBank = ""
 		lastConfirmedMsgNumberBank = -1
-		go GetServersBank(conn, GetIPBank())
 		if err == nil {
 			fmt.Println("*********************************************************************")
 			fmt.Println("*          Welcome to the National Bank of Bullshit                 *")
-			fmt.Println("* Choose the function you would like to test using numbers 1 - 2    *")
+			fmt.Println("* Chconn1oose the function you would like to test using numbers 1 - 2    *")
 			fmt.Println("* 1 - Deposit                                                       *")
 			fmt.Println("* 2 - Withdraw                                                      *")
 			fmt.Println("* 3 - Transfer                                                      *")
@@ -98,26 +101,28 @@ func ConnectToPaxosBank() {
 			case 0:
 				os.Exit(0)
 			}
-			sendToPaxosBank(bankMessage, conn, 0, 1)
+			sendToPaxosBank(bankMessage, conn1)
 		} else {
 			//fmt.Println("--Seems like the node you are trying to connect is gone down or does not exist. Please try another address--")
-			for i := 0; i < len(serverListBank); i++ {
-				if serverListBank[i].IP != connectionIP {
-					connectionIP = serverListBank[i].IP
-				}
-			}
+			//for i := 0; i < len(serverListBank); i++ {
+			//	if serverListBank[i].IP != connectionIP {
+			//		connectionIP = serverListBank[i].IP
+			//	}
+			//}
 		}
 	}
 }
 
-func sendToPaxosBank(st interface{}, conn net.Conn, start int, end int) {
-	encoder := gob.NewEncoder(conn)
+func sendToPaxosBank(st interface{}, conn net.Conn) {
+	encoder := gob.NewEncoder(conn1)
 	var sendMsg = msg.ClientRequestMessage{Content: st}
 	var message interface{}
 	message = sendMsg
 	var err = encoder.Encode(&message)
 	if err != nil {
-		fmt.Println("Hello")
+		fmt.Println("Finding new address")
+		connectionIP = getNewPaxosAddressBank(conn.RemoteAddr().String())
+		conn1, _ = net.Dial("tcp", connectionIP)
 	}
 }
 
@@ -135,10 +140,12 @@ func waitForResponseBank() {
 
 func getNewPaxosAddressBank(failedAddress string) string {
 	var newAddress string
+R:
 	for _, v := range serverListBank {
-		if v.IP != failedAddress {
+		if v.IP != Utils.GetIp(failedAddress) {
 			newAddress = v.IP
-			break
+			fmt.Println("New address:", newAddress)
+			break R
 		}
 	}
 	return newAddress
@@ -153,6 +160,7 @@ func holdClientConnectionBank(conn net.Conn) {
 		switch message.(type) {
 		case msg.ClientResponseMessage:
 			if err != nil {
+				fmt.Println("Closed?")
 				connectionOK = false
 			}
 			if message != nil {
@@ -169,6 +177,7 @@ func holdClientConnectionBank(conn net.Conn) {
 				}
 			} else {
 				fmt.Println("Message is empty stupid!")
+				connectionOK = false
 			}
 		case msg.ClientResponseNodes:
 			var clientMsg msg.ClientResponseNodes
@@ -188,11 +197,17 @@ func GetServersBank(conn net.Conn, myIP string) {
 		}()
 		select {
 		case <-timeout:
-			encoder := gob.NewEncoder(conn)
+			fmt.Println("Sending request")
+			encoder := gob.NewEncoder(conn1)
 			var sendMsg = msg.ClientRequestNodes{RemoteAddress: myIP + ":1337"}
 			var message interface{}
 			message = sendMsg
-			encoder.Encode(&message)
+			err := encoder.Encode(&message)
+			if err != nil {
+				fmt.Println("Finding new address")
+				connectionIP = getNewPaxosAddressBank(conn.RemoteAddr().String())
+				conn1, _ = net.Dial("tcp", connectionIP)
+			}
 		}
 	}
 }
@@ -204,51 +219,3 @@ func GetIPBank() string {
 	ip := UDPAddr.IP.String()
 	return ip
 }
-
-/*	var paxosConn = conn
-	var allOk = true
-L:
-	for i := start; i < end; i++ {
-		encoder := gob.NewEncoder(paxosConn)
-		var sendMsg = msg.ClientRequestMessage{Content: st}
-		var message interface{}
-		message = sendMsg
-		var err = encoder.Encode(&message)
-		if err != nil {
-			var address = getNewPaxosAddressBank(Utils.GetIp(conn.RemoteAddr().String()))
-			address = address + ":1337"
-			paxosAddressBank = address
-			time.Sleep(1000 * time.Millisecond)
-			newConn, _ := net.Dial("tcp", paxosAddressBank)
-			paxosConn = newConn
-			allOk = false
-			break L
-		}
-		if sendAllBank == false {
-			timeout := make(chan bool, 1)
-			go func() {
-				time.Sleep(5000 * time.Millisecond)
-				timeout <- true
-			}()
-			select {
-			case <-sentChanBank:
-				//Don`t do anything here				
-			case <-timeout:
-				fmt.Println("--No reply on message from connection, finding a new one!--")
-				var address = getNewPaxosAddressBank(Utils.GetIp(conn.RemoteAddr().String()))
-				address = address + ":1337"
-				paxosAddressBank = address
-				time.Sleep(1000 * time.Millisecond)
-				newConn, _ := net.Dial("tcp", paxosAddressBank)
-				paxosConn = newConn
-				allOk = false
-				break L
-			}
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	if allOk == false {
-		fmt.Println("Starting a new send from last learnt value!")
-		fmt.Println("Last confirmed message: ", lastConfirmedMsgNumberBank)
-		sendToPaxosBank(st, paxosConn, lastConfirmedMsgNumberBank+1, end)
-	}*/

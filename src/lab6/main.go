@@ -13,7 +13,7 @@ func main() {
 	tot = true
 	for tot == true {
 		fmt.Println("*********************************************************************")
-		fmt.Println("* Choose the function you would like to test using numbers 1 - 2    *")
+		fmt.Println("* Choose the function you would like to test using numbers 1 - 3    *")
 		fmt.Println("* 1 - Paxos server                                                  *")
 		fmt.Println("* 2 - Client                                                        *")
 		fmt.Println("* 3 - Bank system                                                   *")
@@ -30,7 +30,7 @@ func main() {
 			//--Calling the Client--//
 			core.Client()
 		case 3:
-			core.Bank()
+			core.NewBank()
 		case 0:
 			os.Exit(0)
 		}

@@ -80,9 +80,10 @@ func waitForLearns() {
 			if addedSlot {
 				fmt.Println("Wrote to slot: ", value)
 			}
+			var bankMessage = handleBankRequest(value)
 			if RoundVar.GetRound().CurrentLeader.IP == self.IP {
 				sendAddress := RoundVar.GetRound().RespondClient + ":1337"
-				var prepare = msg.ClientResponseMessage{Value: handleBankRequest(value), Round: r, MsgNumber: msgNr}
+				var prepare = msg.ClientResponseMessage{Value: bankMessage, Round: r, MsgNumber: msgNr}
 				var message interface{}
 				message = prepare
 				tcp.SendPaxosMessage(sendAddress, message)
@@ -104,7 +105,10 @@ func handleBankRequest(req interface{}) string {
 		oldBalance := bankAccounts[dep.AccountNumber]
 		newBalance := oldBalance + dep.Amount
 		bankAccounts[dep.AccountNumber] = newBalance
-		return fmt.Sprintf("Deposited %d into %s, new balance %d", dep.Amount, dep.AccountNumber, newBalance)
+		txt := fmt.Sprintf("Deposited %d into %s, new balance %d", dep.Amount, dep.AccountNumber, newBalance)
+		fmt.Println(txt)
+		return txt
+		//return fmt.Sprintf("Deposited %d into %s, new balance %d", dep.Amount, dep.AccountNumber, newBalance)
 	case msg.Withdraw:
 		rem := req.(msg.Withdraw)
 		oldBalance := bankAccounts[rem.AccountNumber]
@@ -138,7 +142,10 @@ func handleBankRequest(req interface{}) string {
 	case msg.Balance:
 		bal := req.(msg.Balance)
 		balance := bankAccounts[bal.AccountNumber]
-		return fmt.Sprintf("Balance on account %s: %d", bal.AccountNumber, balance)
+		txt := fmt.Sprintf("Balance on account %s: %d", bal.AccountNumber, balance)
+		fmt.Println(txt)
+		return txt
+		//return fmt.Sprintf("Balance on account %s: %d", bal.AccountNumber, balance)
 	}
 	return ""
 }
